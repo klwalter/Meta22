@@ -53,7 +53,7 @@ end
 
 function objective_function(result::Vector{Int})
     # Zakładam, że mamy tu załadowaną instancję problemu
-    distance_matrix = tsp.weight
+    distance_matrix = tsp.weights
     sum = 0
     l = length(result)
     for n in 1:l-1
@@ -69,4 +69,39 @@ end
 
 function PRD(x::Vector{Int}, f_ref::Float32)
     return (objective_function(x) - f_ref)/f_ref
+end
+
+
+################################################################
+#                        Heurystyki                            #
+################################################################
+
+
+############
+# k-random #
+############
+
+function k_random(k::Number)
+    rng = Random.MersenneTwister()
+    vertices_number = tsp.dimention
+
+    solution = shuffle(rng, Vector(1:vertices_number))
+    distance = objective_function(solution)
+    for i in 1:k
+        temp_solution = shuffle(rng, Vector(1:vertices_number))
+        temp_distance = objective_function(temp_solution)
+        if distance > temp_distance
+            distance = temp_distance
+            solution = temp_solution
+        end
+    end    
+    return solution
+end
+
+#####################
+# nearest neighbour #
+#####################
+
+function nearest_neightbour(starting_point::Number)
+    
 end
