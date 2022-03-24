@@ -138,3 +138,15 @@ function nearest_neighbour(starting_point::Number)
     return solution
 end
 
+
+function better_neighbour()
+    size = tsp.dimension
+    solution = nearest_neightbour(1)
+    for i in 2:size 
+        temp = nearest_neightbour(i)
+        if objective_function(solution) > objective_function(temp)
+            solution = temp
+        end
+    end
+    return solution
+end
