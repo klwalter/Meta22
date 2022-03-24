@@ -82,8 +82,10 @@ end
 ############
 
 function k_random(k::Number)
+    # Zakładamy, że mamy załadowaną instancję problemu
+    
     rng = Random.MersenneTwister()
-    vertices_number = tsp.dimention
+    vertices_number = tsp.dimension
 
     solution = shuffle(rng, Vector(1:vertices_number))
     distance = objective_function(solution)
@@ -103,5 +105,29 @@ end
 #####################
 
 function nearest_neightbour(starting_point::Number)
-    
+    # Zakładamy, że mamy załadowaną instancję problemu
+    size = tsp.dimension
+    solution = zeros(Int, size)
+    solution[1] = starting_point
+
+    status = ones(Int, size)
+    status[starting_point] = 0
+
+    distance_matrix = tsp.weights
+    nodes_done = 1
+    while nodes_done < size-1 # lecimy tak długo, aż nie zostanie nam 1 wierzchołek
+        for i in 1:size # interujemy po wszystkich wierzchołkach
+            if status[i] == 1 # sprawdzamy czy wierzchołek był odwiedzony
+                temp_node = i
+                temp_distance = distance_matrix[solution[nodes_done], i] # solution[nodes_done] = numer ostanio dodanego wierzchołka
+                break # wybraliśmy pierwszy wierzchołek o statusie 1
+            end
+        end
+        for i in temp_node+1:size
+            
+        end
+
+
+    end
+
 end
