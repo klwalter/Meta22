@@ -124,10 +124,17 @@ function nearest_neighbour(starting_point::Number)
             end
         end
         for i in temp_node+1:size
-            
+            if status[i] == 1 # kolejny nieodwiedzony wierzchołek
+                new_distance = distance_matrix[solution[nodes_done], i] # sprawdzamy odległość do nowego wierzchołka 
+                if temp_distance > new_distance # Jeżeli kolejny wierchołek jest bliżej to zmieniamy
+                    temp_node = i
+                    temp_distance = new_distance
+                end
+            end
         end
-
-
+        nodes_done += 1
+        solution[nodes_done] = temp_node
     end
-
+    return solution
 end
+
