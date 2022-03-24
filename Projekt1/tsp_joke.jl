@@ -104,7 +104,7 @@ end
 # nearest neighbour #
 #####################
 
-function nearest_neightbour(starting_point::Number)
+function nearest_neighbour(starting_point::Number)
     # Zakładamy, że mamy załadowaną instancję problemu
     size = tsp.dimension
     solution = zeros(Int, size)
