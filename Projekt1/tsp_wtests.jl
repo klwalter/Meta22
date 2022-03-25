@@ -1,7 +1,7 @@
 using TSPLIB
 using Random
 
-global improved = true
+global improved_flag = true
 
 #################################
 # Pierwszy fragment kodu szefie #
@@ -47,7 +47,6 @@ end
 ##############################
 
 function objective_function(tsp_data::TSP, result::Vector{Int})
-    # Zakładam, że mamy tu załadowaną instancję problemu
     distance_matrix = tsp_data.weights
     sum = 0
     l = length(result)
@@ -82,9 +81,11 @@ function k_random(tsp_data::TSP, k::Number)
 
     solution = shuffle(rng, Vector(1:vertices_number))
     distance = objective_function(tsp_data, solution)
+
     for i in 1:k
         temp_solution = shuffle(rng, Vector(1:vertices_number))
         temp_distance = objective_function(tsp_data, temp_solution)
+
         if distance > temp_distance
             distance = temp_distance
             solution = temp_solution
@@ -149,33 +150,6 @@ end
 #  2 OPT  #
 ###########
 
-# function two_opt(tsp_data::TSP)
-#                                                                 # Zakładam że mamy załadowany problem
-#     rng = Random.MersenneTwister()                              # Wybieramy chad generator
-#     size = tsp_data.dimension                                        #
-#     solution = shuffle(rng, Vector(1:size))                     # Wybieramy losowe rozwiąnie początkowe
-#     there_is_better = 1                                         # Tu ustawiłem flagę na 1, ale można zamiast tego ustawić ją na 0 i zrobić do while. Wychodzi na to samo
-    
-#     while there_is_better == 1                                  #
-#         there_is_better = 0                                     # Dopóki nie znajdziemy lepszego, flaga jest opuszczona (PS nie wiem czy dobrze postawiłem przecinek)
-#         current_solution = solution                             # current_solution to kandydat na lepsze rozwiązanie
-#         dist = objective_function(tsp_data, current_solution)             #
-#         for i in 1:size-1                                       # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
-#             for j in i+1:size                                   #
-#                 neighbour = solution                            #
-#                 neighbour[i], neighbour[j] = solution[j], neighbour[i]                      # Tutaj robimy inwersję 
-#                 if objective_function(tsp_data, neighbour) < dist         #
-#                     current_solution = neighbour                #
-#                     dist = objective_function(tsp_data, current_solution) #
-#                     there_is_better = 1                         # Znaleźliśmy lepsze rozwiązanie, więc zamieniamy z poprzednim gorszym i podnosimy flagę there_is_better      
-#                 end                                             #
-#             end                                                 #
-#         end                                                     #
-#         solution = current_solution                             # Zamieniamy obecne rozwiązanie z nowym. Jeżeli flaga there_is_better nie została podniesiona, to podwójna pętla nic nie zmieniła.
-#     end                                                         #
-#     return solution                                             #
-# end
-
 function two_opt(tsp_data::TSP)
     rng = Random.MersenneTwister()
     size = tsp_data.dimension
@@ -190,8 +164,8 @@ function two_opt(tsp_data::TSP)
     current_solution = solution                                     # current_solution to kandydat na lepsze rozwiązanie
     best_dist = objective_function(tsp_data, current_solution)
 
-    while improved == true
-        improved = false
+    while improved_flag == true
+        improved_flag = false
 
         for i in 2:size                                             # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
             for j in i+1:size
@@ -201,7 +175,7 @@ function two_opt(tsp_data::TSP)
                 if current_dist < best_dist
                     best_dist = current_dist
                     solution = new_solution
-                    improved = true
+                    improved_flag = true
                 end
             end
         end
@@ -209,11 +183,11 @@ function two_opt(tsp_data::TSP)
     end
 end
 
-##########
-#  TEST  #
-##########
+###########
+#  TESTS  #
+###########
 
-function sim_test(tsp_data::TSP, algorithm::Function, objective::Function, reps::Int)
+function alg_test(tsp_data::TSP, algorithm::Function, objective::Function, reps::Int, aux_args...)
     println()
     println("-----------------TEST-----------------")
     println("Currently tested TSP file:")
@@ -226,20 +200,23 @@ function sim_test(tsp_data::TSP, algorithm::Function, objective::Function, reps:
     best_dist = 0
 
     for i in 1:reps
-        final_path = algorithm(tsp_data)
+        final_path = algorithm(tsp_data, aux_args...)
         obj_dist = objective(tsp_data, final_path)
-        # println("Tested path: ", final_path)
-        # println("Tested distance: ", obj_dist)
+        # println()
+        # println("Tested path $i: ", final_path)
+        # println("Tested distance $i: ", obj_dist)
 
         if i == 1
             best_path = final_path
             best_dist = obj_dist
-        elseif rem(i, 1000) == 0
-            println("$i out of $reps tests already done")
         else
             if obj_dist < best_dist
                 best_path = final_path
                 best_dist = obj_dist
+            end
+            if rem(i, 1000) == 0
+                println("$i out of $reps tests done")
+                
             end
         end
     end
@@ -258,6 +235,7 @@ end
 
 function main()
     repetitions = 10000
+    aux = 0
     tsp = load_tsp()
 
     println("Choose which algorithm you want to use:")
@@ -270,17 +248,20 @@ function main()
     
     if choice == 1
         println("You have chosen K-random")
-        sim_test(tsp, two_opt, objective_function, repetitions)
+        print("Please enter the K-value: ")
+        aux = parse(Int, readline())
+        alg_test(tsp, k_random, objective_function, repetitions, aux)
     elseif choice == 2
         println("You have chosen Nearest neighbour")
-        sim_test(tsp, two_opt, objective_function, repetitions)
+        print("Please enter the starting node: ")
+        aux = parse(Int, readline())
+        alg_test(tsp, nearest_neighbour, objective_function, repetitions, aux)
     elseif choice == 3
         println("You have chosen 2-OPT")
-        sim_test(tsp, two_opt, objective_function, repetitions)
+        alg_test(tsp, two_opt, objective_function, repetitions)
     else
         println("Please enter correct number")
     end
-    
 end
 
 main()
