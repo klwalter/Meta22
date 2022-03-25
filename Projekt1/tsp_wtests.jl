@@ -110,7 +110,7 @@ function nearest_neighbour(tsp_data::TSP, starting_point::Number)
 
     distance_matrix = tsp_data.weights
     nodes_done = 1
-    while nodes_done < size-1 # lecimy tak długo, aż nie zostanie nam 1 wierzchołek
+    while nodes_done < size # lecimy tak długo, aż nie zostanie nam 1 wierzchołek
         for i in 1:size # interujemy po wszystkich wierzchołkach
             if status[i] == 1 # sprawdzamy czy wierzchołek był odwiedzony
                 temp_node = i
