@@ -1,24 +1,21 @@
+using Random
 using TSPLIB
-
-path = "TSP/a280.opt.tour"
-file = open(path, "r")
-solution = Int[]
-numbers = false
-for line in eachline(file)
-    
-    #println(line)
-    if line == "-1"
-        break
+function random_instance(size::Number, seed::Number, range::Number)
+    rng = Random.MersenneTwister(seed)
+    points = convert(Array{Float64},rand(rng, 1:range, size, 2)) # Macierz size x 2
+    file = open("TSP/temp.tsp", "w") 
+    napis = "NAME: temp\nTYPE: TSP\nCOMMENT: Temporary file, don't worry about it.\nDIMENSION: $size\nEDGE_WEIGHT_TYPE: EUC_2D\nNODE_COORD_SECTION\n" 
+    write(file,napis)
+    for i in 1:size
+        x, y = points[i, 1], points[i, 2]
+        write(file, "$i $x $y\n")
     end
-
-    if numbers
-        liczba = parse(Int, line)
-        append!(solution, liczba)
-    end
-
-    if line == "TOUR_SECTION"
-        global numbers = true
-    end
-
+    write(file, "EOF\n\n")
+    close(file)
 end
-println(solution)
+
+random_instance(52, 2137, 2000)
+
+# # help = readTSP("TSP/temp.tsp")
+
+# println(help.weights)
