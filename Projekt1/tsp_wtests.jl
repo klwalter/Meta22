@@ -2,9 +2,9 @@ using TSPLIB
 using Random
 
 global improved_flag = true
-
+global solution = Vector{Int}
 #################################
-# Pierwszy fragment kodu szefie #
+# Ładowanie pliku tsp           #
 #################################
 
 function load_tsp()
@@ -16,18 +16,21 @@ function load_tsp()
 end
 
 ##############################
-# Drugi fragment kodu szefie #
+# Losowanie instancji        #
 ##############################
 
 function random_instance(size::Number, seed::Number, variant::String)
     rng = Random.MersenneTwister(seed)
     random_vector = shuffle(rng, Vector(1:size))
+    if variant == "euc_2d"
+        points = rand(rng, 1:100, size, 2)
+    end
     return (random_vector, variant)
 end
 
-###############################
-# Trzeci fragment kodu szefie #
-###############################
+###################################
+# Wyświetlanie macierzy odległośi #
+###################################
 
 
 function show()
@@ -35,7 +38,7 @@ function show()
 end
 
 ################################
-# Czwarty fragment kodu szefie #
+# Wyświetlanie wyniku          #
 ################################
 
 function results(result::Vector{Int})
@@ -43,7 +46,7 @@ function results(result::Vector{Int})
 end
 
 ##############################
-# Piąty fragment kodu szefie #
+# Funkcja celu               #
 ##############################
 
 function objective_function(tsp_data::TSP, result::Vector{Int})
@@ -58,7 +61,7 @@ function objective_function(tsp_data::TSP, result::Vector{Int})
 end
 
 ###############################
-# Szósty fragment kodu szefie #
+# Funkcja PRD                 #
 ###############################
 
 function PRD(x::Vector{Int}, f_ref::Float32)
@@ -129,10 +132,10 @@ function nearest_neighbour(tsp_data::TSP, starting_point::Number)
         end
         nodes_done += 1
         solution[nodes_done] = temp_node
+        status[temp_node] = 0
     end
     return solution
 end
-
 
 function better_neighbour(tsp_data::TSP)
     size = tsp_data.dimension
@@ -153,34 +156,41 @@ end
 function two_opt(tsp_data::TSP)
     rng = Random.MersenneTwister()
     size = tsp_data.dimension
-    solution = shuffle(rng, Vector(1:size))                         # Wybieramy losowe rozwiąnie początkowe
-    
-    function swap(x, y)
-        swapped = copy(solution)
+    local solution = shuffle(rng, Vector(1:size))                         # Wybieramy losowe rozwiąnie początkowe
+    #println("Solution 1", solution)
+    function swap(x, y, list)
+        swapped = copy(list)
         swapped[x], swapped[y] = swapped[y], swapped[x]
         return swapped
     end
 
-    current_solution = solution                                     # current_solution to kandydat na lepsze rozwiązanie
-    best_dist = objective_function(tsp_data, current_solution)
-
-    while improved_flag == true
+    local current_new_solution = solution                                     # current_solution to kandydat na lepsze rozwiązanie
+    local best_dist = objective_function(tsp_data, solution)
+    local depth = 0
+    while improved_flag == true && depth < 10
         improved_flag = false
-
         for i in 2:size                                             # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
             for j in i+1:size
-                new_solution = swap(i, j)
+                new_solution = swap(i, j, solution)
                 current_dist = objective_function(tsp_data, new_solution)
     
                 if current_dist < best_dist
+
                     best_dist = current_dist
-                    solution = new_solution
+                    current_new_solution = new_solution
+                    #println("Solution 2", current_new_solution)
+                    #solution = new_solution
                     improved_flag = true
                 end
             end
         end
-        return solution  
+        
+        solution = current_new_solution
+        #println("Solution 3", solution)
+        depth += 1  
     end
+    #println("Solution 4", solution)
+    return solution
 end
 
 ###########
@@ -265,3 +275,28 @@ function main()
 end
 
 main()
+
+function get_optimal(variant::String)
+    path = "TSP/" * variant
+    file = open(path, "r")
+    solution = Int[]
+    numbers = false
+    for line in eachline(file)
+        
+
+        if line == "-1"
+            break
+        end
+
+        if numbers
+            liczba = parse(Int, line)
+            append!(solution, liczba)
+        end
+
+        if line == "TOUR_SECTION"
+            global numbers = true
+        end
+
+    end
+    return solution
+end

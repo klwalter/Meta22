@@ -1,6 +1,8 @@
 using TSPLIB
 using Random
 
+global improved_flag = true
+
 #################################
 # Pierwszy fragment kodu szefie #
 #################################
@@ -9,13 +11,6 @@ function load_tsp(name::String)
     path = "TSP/" * name
     global tsp = readTSP(path)
 end
-
-load_tsp("gr120.tsp")
-println(tsp.name)
-load_tsp("berlin52.tsp")
-println(tsp.name)
-load_tsp("br17.atsp")
-println(tsp.name)
 
 ##############################
 # Drugi fragment kodu szefie #
@@ -26,9 +21,6 @@ function random_instance(size::Number, seed::Number, variant::String)
     random_vector = shuffle(rng, Vector(1:size))
     return (random_vector, variant)
 end
-
-test = random_instance(5, 124213, "lambda")
-println(test)
 
 ###############################
 # Trzeci fragment kodu szefie #
@@ -155,25 +147,24 @@ end
 #  2 OPT  #
 ###########
 
-function 2opt()
+function two_opt()
                                                                 # Zakładam że mamy załadowany problem
     rng = Random.MersenneTwister()                              # Wybieramy chad generator
     size = tsp.dimension                                        #
     solution = shuffle(rng, Vector(1:size))                     # Wybieramy losowe rozwiąnie początkowe
-    there_is_better = 1                                         # Tu ustawiłem flagę na 1, ale można zamiast tego ustawić ją na 0 i zrobić do while. Wychodzi na to samo
-    while there_is_better == 1                                  #
-        there_is_better = 0                                     # Dopóki nie znajdziemy lepszego, flaga jest opuszczona (PS nie wiem czy dobrze postawiłem przecinek)
-        current_solution = solution                             # current_solution to kandydat na lepsze rozwiązanie
+    while improved_flag == true                                         #
+        improved_flag = false                                   # Dopóki nie znajdziemy lepszego, flaga jest opuszczona (PS nie wiem czy dobrze postawiłem przecinek)
+        current_solution = copy(solution)                             # current_solution to kandydat na lepsze rozwiązanie
         dist = objective_function(current_solution)             #
         for i in 1:size-1                                       # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
             for j in i+1:size                                   #
-                neighbour = solution                            #
+                neighbour = copy(solution)                      #
                 neighbour[i] = solution[j]                      # Tutaj robimy inwersję 
                 neighbour[j] = solution[i]                      #
                 if objective_function(neighbour) < dist         #
                     current_solution = neighbour                #
                     dist = objective_function(current_solution) #
-                    there_is_better = 1                         # Znaleźliśmy lepsze rozwiązanie, więc zamieniamy z poprzednim gorszym i podnosimy flagę there_is_better      
+                    improved_flag = true                        # Znaleźliśmy lepsze rozwiązanie, więc zamieniamy z poprzednim gorszym i podnosimy flagę there_is_better      
                 end                                             #
             end                                                 #
         end                                                     #
@@ -181,3 +172,9 @@ function 2opt()
     end                                                         #
     return solution                                             #
 end                                                             #
+
+
+load_tsp("br17.atsp")
+test = two_opt()
+println(test)
+println(objective_function(test))
