@@ -274,7 +274,7 @@ function main()
     end
 end
 
-main()
+#main()
 
 function get_optimal(variant::String)
     path = "TSP/" * variant
@@ -294,9 +294,14 @@ function get_optimal(variant::String)
         end
 
         if line == "TOUR_SECTION"
-            global numbers = true
+            numbers = true
         end
 
     end
     return solution
 end
+
+list = get_optimal("berlin52.opt.tour")
+path = "TSP/berlin52.tsp" 
+berlin = readTSP(path)
+println(objective_function(berlin, list))
