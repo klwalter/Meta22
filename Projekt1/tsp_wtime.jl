@@ -1,10 +1,11 @@
 using TSPLIB
 using Random
+using BenchmarkTools
 
 global improved_flag = true
-global solution = Vector{Int}
+
 #################################
-# Ładowanie pliku tsp           #
+# Pierwszy fragment kodu szefie #
 #################################
 
 function load_tsp()
@@ -16,21 +17,18 @@ function load_tsp()
 end
 
 ##############################
-# Losowanie instancji        #
+# Drugi fragment kodu szefie #
 ##############################
 
 function random_instance(size::Number, seed::Number, variant::String)
     rng = Random.MersenneTwister(seed)
     random_vector = shuffle(rng, Vector(1:size))
-    if variant == "euc_2d"
-        points = rand(rng, 1:100, size, 2)
-    end
     return (random_vector, variant)
 end
 
-###################################
-# Wyświetlanie macierzy odległośi #
-###################################
+###############################
+# Trzeci fragment kodu szefie #
+###############################
 
 
 function show()
@@ -38,7 +36,7 @@ function show()
 end
 
 ################################
-# Wyświetlanie wyniku          #
+# Czwarty fragment kodu szefie #
 ################################
 
 function results(result::Vector{Int})
@@ -46,7 +44,7 @@ function results(result::Vector{Int})
 end
 
 ##############################
-# Funkcja celu               #
+# Piąty fragment kodu szefie #
 ##############################
 
 function objective_function(tsp_data::TSP, result::Vector{Int})
@@ -61,7 +59,7 @@ function objective_function(tsp_data::TSP, result::Vector{Int})
 end
 
 ###############################
-# Funkcja PRD                 #
+# Szósty fragment kodu szefie #
 ###############################
 
 function PRD(x::Vector{Int}, f_ref::Float32)
@@ -137,11 +135,16 @@ function nearest_neighbour(tsp_data::TSP, starting_point::Number)
     return solution
 end
 
-function better_neighbour(tsp_data::TSP)
+######################
+# extended neighbour #
+######################
+
+function extended_neighbour(tsp_data::TSP)
     size = tsp_data.dimension
-    solution = nearest_neightbour(1)
+    solution = nearest_neighbour(tsp_data, 1)
+
     for i in 2:size 
-        temp = nearest_neightbour(i)
+        temp = nearest_neighbour(tsp_data, i)
         if objective_function(tsp_data, solution) > objective_function(tsp_data, temp)
             solution = temp
         end
@@ -156,41 +159,33 @@ end
 function two_opt(tsp_data::TSP)
     rng = Random.MersenneTwister()
     size = tsp_data.dimension
-    local solution = shuffle(rng, Vector(1:size))                         # Wybieramy losowe rozwiąnie początkowe
-    #println("Solution 1", solution)
-    function swap(x, y, list)
-        swapped = copy(list)
+    solution = shuffle(rng, Vector(1:size))                         # Wybieramy losowe rozwiąnie początkowe
+    
+    function swap(x, y)
+        swapped = copy(solution)
         swapped[x], swapped[y] = swapped[y], swapped[x]
         return swapped
     end
 
-    local current_new_solution = solution                                     # current_solution to kandydat na lepsze rozwiązanie
-    local best_dist = objective_function(tsp_data, solution)
-    local depth = 0
-    while improved_flag == true && depth < 10
+    best_dist = objective_function(tsp_data, solution)
+
+    while improved_flag == true
         improved_flag = false
-        for i in 2:size                                             # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
+
+        for i in 1:size-1
             for j in i+1:size
-                new_solution = swap(i, j, solution)
+                new_solution = swap(i, j)
                 current_dist = objective_function(tsp_data, new_solution)
     
                 if current_dist < best_dist
-
                     best_dist = current_dist
-                    current_new_solution = new_solution
-                    #println("Solution 2", current_new_solution)
-                    #solution = new_solution
+                    solution = new_solution
                     improved_flag = true
                 end
             end
         end
-        
-        solution = current_new_solution
-        #println("Solution 3", solution)
-        depth += 1  
+        return solution  
     end
-    #println("Solution 4", solution)
-    return solution
 end
 
 ###########
@@ -247,11 +242,13 @@ function main()
     repetitions = 10000
     aux = 0
     tsp = load_tsp()
+    local time
 
     println("Choose which algorithm you want to use:")
     println("1. K-random")
     println("2. Nearest neighbour")
-    println("3. 2-OPT")
+    println("3. Extended nearest neighbour")
+    println("4. 2-OPT")
     print("Your choice: ")
     choice = parse(Int, readline())
     println()
@@ -260,48 +257,29 @@ function main()
         println("You have chosen K-random")
         print("Please enter the K-value: ")
         aux = parse(Int, readline())
-        alg_test(tsp, k_random, objective_function, repetitions, aux)
+        @time begin            
+            time = @elapsed alg_test(tsp, k_random, objective_function, repetitions, aux)
+        end
     elseif choice == 2
         println("You have chosen Nearest neighbour")
         print("Please enter the starting node: ")
         aux = parse(Int, readline())
-        alg_test(tsp, nearest_neighbour, objective_function, repetitions, aux)
+        @time begin
+            alg_test(tsp, nearest_neighbour, objective_function, repetitions, aux)            
+        end
     elseif choice == 3
-        println("You have chosen 2-OPT")
-        alg_test(tsp, two_opt, objective_function, repetitions)
+        println("You have chosen Extended nearest neighbour")
+        @time begin
+            alg_test(tsp, extended_neighbour, objective_function, repetitions)
+        end
+    elseif choice == 4
+        println("You have chosen 2-OPT")    
+        time = @elapsed alg_test(tsp, two_opt, objective_function, repetitions)
     else
         println("Please enter correct number")
     end
+
+    println(time)
 end
 
-#main()
-
-function get_optimal(variant::String)
-    path = "TSP/" * variant
-    file = open(path, "r")
-    solution = Int[]
-    numbers = false
-    for line in eachline(file)
-        
-
-        if line == "-1"
-            break
-        end
-
-        if numbers
-            liczba = parse(Int, line)
-            append!(solution, liczba)
-        end
-
-        if line == "TOUR_SECTION"
-            numbers = true
-        end
-
-    end
-    return solution
-end
-
-list = get_optimal("berlin52.opt.tour")
-path = "TSP/berlin52.tsp" 
-berlin = readTSP(path)
-println(objective_function(berlin, list))
+main()
