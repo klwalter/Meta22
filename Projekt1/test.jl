@@ -14,7 +14,7 @@ function random_instance(size::Number, seed::Number, range::Number)
     close(file)
 end
 
-random_instance(52, 2137, 2000)
+random_instance(10, 2137, 2000)
 
 # # help = readTSP("TSP/temp.tsp")
 

@@ -1,7 +1,7 @@
 using TSPLIB
 using Random
 
-global improved_flag = true
+
 
 #################################
 # Pierwszy fragment kodu szefie #
@@ -173,12 +173,12 @@ function two_opt(tsp_data::TSP)
         swapped[x], swapped[y] = swapped[y], swapped[x]
         return swapped
     end
-
+    local improved_flag = true
     local current_new_solution = solution                                     # current_solution to kandydat na lepsze rozwiązanie
     local best_dist = objective_function(tsp_data, solution)
     while improved_flag == true
         improved_flag = false
-        for i in 2:size                                             # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
+        for i in 2:size-1                                             # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
             for j in i+1:size
                 new_solution = swap(i, j, solution)
                 current_dist = objective_function(tsp_data, new_solution)
@@ -281,7 +281,7 @@ end
 ##########
 
 function main()
-    repetitions = 10000
+    repetitions = 100
     aux = 0
     tsp = load_tsp()
     local time
