@@ -242,6 +242,7 @@ function main()
     repetitions = 10000
     aux = 0
     tsp = load_tsp()
+    local time
 
     println("Choose which algorithm you want to use:")
     println("1. K-random")
@@ -257,7 +258,7 @@ function main()
         print("Please enter the K-value: ")
         aux = parse(Int, readline())
         @time begin            
-            alg_test(tsp, k_random, objective_function, repetitions, aux)
+            time = @elapsed alg_test(tsp, k_random, objective_function, repetitions, aux)
         end
     elseif choice == 2
         println("You have chosen Nearest neighbour")
@@ -272,13 +273,13 @@ function main()
             alg_test(tsp, extended_neighbour, objective_function, repetitions)
         end
     elseif choice == 4
-        println("You have chosen 2-OPT")
-        @time begin
-            alg_test(tsp, two_opt, objective_function, repetitions)
-        end
+        println("You have chosen 2-OPT")    
+        time = @elapsed alg_test(tsp, two_opt, objective_function, repetitions)
     else
         println("Please enter correct number")
     end
+
+    println(time)
 end
 
 main()
