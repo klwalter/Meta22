@@ -1,6 +1,8 @@
-using Random
-rng = Random.MersenneTwister(213312)
-points = rand(rng, 1:100, 10, 2) # Macierz size x 2
-x = points[1, 2]
-println(x)
-println(points)
+# using Random
+
+for i in 1:10
+    n = 50*i
+    name = "cum$n.tsp"
+    seed = rand(Int,1)
+    println(seed[1])
+end

@@ -20,12 +20,9 @@ end
 # Drugi fragment kodu szefie #
 ##############################
 
-function random_instance(size::Number, seed::Number, range::Number)
+function random_instance(size::Number, seed::Number, range::Number, name::String)
     rng = Random.MersenneTwister(seed)
     points = convert(Array{Float64},rand(rng, 1:range, size, 2)) # Macierz size x 2
-    
-    print("File name with extension: ")
-    name = chomp(readline())
 
     file = open("TSP/" * name, "w") 
     napis = "NAME: $name\nTYPE: TSP\nCOMMENT: User-generated TSP file\nDIMENSION: $size\nEDGE_WEIGHT_TYPE: EUC_2D\nNODE_COORD_SECTION\n" 
@@ -38,7 +35,7 @@ function random_instance(size::Number, seed::Number, range::Number)
     write(file, "EOF\n\n")
     close(file)
     
-    return readTSP("TSP/" * name)
+    # return readTSP("TSP/" * name)
 end
 
 ###############################
@@ -293,7 +290,7 @@ end
 ##########
 
 function main()
-    repetitions = 1000
+    repetitions = 1
     a, b, c = 0, 0, 0
     local time = 0
 
@@ -361,4 +358,18 @@ function main()
     println()
 end
 
-main()
+#main()
+
+# for i in 1:25
+#     n = 10 * i
+#     name = "cum$n.tsp"
+#     seed = rand(Int,1)
+#     random_instance(50*i, abs(seed[1]), 50*i, name)    
+# end
+for i in 1:25
+    n = 10 * i
+    name = "cum$n.tsp"
+    tsp = readTSP("TSP/"*name)
+    time = @elapsed two_opt(tsp) 
+    println(time)
+end
