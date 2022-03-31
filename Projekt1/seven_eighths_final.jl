@@ -33,6 +33,10 @@ function random_instance(size::Number, seed::Number, range::Number, name::String
         write(file, "$i $x $y\n")
     end
     write(file, "EOF\n\n")
+    write(file, "\n")
+    write(file, "\n")
+    write(file, "\n")
+    write(file, "\n")
     close(file)
     
     # return readTSP("TSP/" * name)
@@ -364,12 +368,15 @@ end
 #     n = 10 * i
 #     name = "cum$n.tsp"
 #     seed = rand(Int,1)
-#     random_instance(50*i, abs(seed[1]), 50*i, name)    
+#     random_instance(n, abs(seed[1]), n, name)    
 # end
+file = open("two_opt_speed_test.txt", "w")
 for i in 1:25
     n = 10 * i
     name = "cum$n.tsp"
     tsp = readTSP("TSP/"*name)
     time = @elapsed two_opt(tsp) 
-    println(time)
+    println("$n")
+    write(file, "$n $time\n")
 end
+close(file)
