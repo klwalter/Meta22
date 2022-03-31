@@ -2,7 +2,6 @@ using TSPLIB
 using Random
 
 
-
 #################################
 # Pierwszy fragment kodu szefie #
 #################################
@@ -288,6 +287,22 @@ function alg_test(tsp_data::TSP, algorithm::Function, objective::Function, reps:
     println("PRD: ", PRD(tsp_data, best_path, objective(tsp_data, optimal)), "%")
 end
 
+################
+#  SIMULATION  #
+################
+
+function data_simulation(tsp_data::TSP, algorithm::Function, reps::Int)
+    file = open("$algorithm\_speed_test.txt", "w")
+    
+    for i in 1:reps
+        n = 5 * i
+        time = @elapsed two_opt(tsp_data) 
+        println("$n")
+        write(file, "$n $time\n")
+    end
+
+    close(file)
+end
 
 ##########
 #  MAIN  #
@@ -295,13 +310,14 @@ end
 
 function main()
     repetitions = 1
-    a, b, c = 0, 0, 0
+    a, b, c, d = 0, 0, 0, 0
     local time = 0
 
     println()
-    println("Choose method of loading the instance:")
+    println("Choose an option from menu below:")
     println("1. Load existing instance")
     println("2. Generate new instance")
+    println("3. Generate data from tests")
     print("Your choice: ")
     choice = parse(Int, readline())
 
@@ -317,8 +333,17 @@ function main()
 
         print("Range of values (from 1 to X): ")
         c = parse(Int, readline())
+
+        print("Enter the name of the instance with extension: ")
+        d = chomp(readline())
         
-        tsp = random_instance(a, b, c)
+        tsp = random_instance(a, b, c, d)
+    elseif choice == 3
+        tsp = load_tsp()
+        
+        data_simulation(tsp, two_opt, 100)
+        
+        return
     else
         println("\nPlease enter correct number\n")
         return -1
@@ -362,7 +387,7 @@ function main()
     println()
 end
 
-#main()
+main()
 
 # for i in 1:25
 #     n = 10 * i
@@ -370,13 +395,13 @@ end
 #     seed = rand(Int,1)
 #     random_instance(n, abs(seed[1]), n, name)    
 # end
-file = open("two_opt_speed_test.txt", "w")
-for i in 1:25
-    n = 10 * i
-    name = "cum$n.tsp"
-    tsp = readTSP("TSP/"*name)
-    time = @elapsed two_opt(tsp) 
-    println("$n")
-    write(file, "$n $time\n")
-end
-close(file)
+# file = open("two_opt_speed_test.txt", "w")
+# for i in 1:25
+#     n = 10 * i
+#     name = "cum$n.tsp"
+#     tsp = readTSP("TSP/"*name)
+#     time = @elapsed two_opt(tsp) 
+#     println("$n")
+#     write(file, "$n $time\n")
+# end
+# close(file)
