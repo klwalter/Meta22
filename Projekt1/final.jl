@@ -18,7 +18,7 @@ end
 # Generowanie instancji #
 #########################
 
-function random_instance(size::Number, seed::Number, range::Number, name::String)
+function random_instance(size::Number, seed::Number, range::Number, name::String, type::String)
     rng = Random.MersenneTwister(seed)
     points = convert(Array{Float64},rand(rng, 1:range, size, 2))
 
@@ -33,10 +33,40 @@ function random_instance(size::Number, seed::Number, range::Number, name::String
     write(file, "EOF\n\n")
     close(file)
     tsp = readTSP("TSP/" * name)
+    
+    if type == "FULL_MATRIX"
+        napis = "NAME: $name\nTYPE: TSP\nCOMMENT: User-generated TSP file\nDIMENSION: $size\nEDGE_WEIGHT_TYPE: FULL_MATRIX\nEDGE_WEIGHT_SECTION\n" 
+        file = open("TSP/" * name, "w")
+        write(file,napis)
+        mat = tsp.weights
+        s = tsp.dimension
+        for i in 1:s
+            for j in 1:s
+                x = mat[i,j]
+                write(file, "$x ")
+            end
+            write(file, "\n")
+        end
+    elseif type == "LOWER_DIAG_ROW"
+        napis = "NAME: $name\nTYPE: TSP\nCOMMENT: User-generated TSP file\nDIMENSION: $size\nEDGE_WEIGHT_TYPE: LOWER_DIAG_ROW\nEDGE_WEIGHT_SECTION\n" 
+        file = open("TSP/" * name, "w")
+        write(file,napis)
+        mat = tsp.weights
+        s = tsp.dimension
+
+        for i in 1:s
+            for j in 1:i
+                x = mat[i,j]
+                write(file, "$x")
+                write(file, "\n")
+            end
+        end
+    end
+    write(file, "EOF\n\n")
+    close(file)
     println(tsp.weights)
     return tsp
 end
-
 ################
 # Funkcja celu #
 ################
@@ -243,9 +273,6 @@ function alg_test(tsp_data::TSP, algorithm::Function, objective::Function, reps:
     for i in 1:reps
         final_path = algorithm(tsp_data, aux_args...)
         obj_dist = objective(tsp_data, final_path)
-        # println()
-        # println("Tested path $i: ", final_path)
-        # println("Tested distance $i: ", obj_dist)
 
         if i == 1
             best_path = final_path
@@ -308,7 +335,10 @@ function main()
         print("Enter the name of the instance with extension: ")
         d = convert(String, chomp(readline()))
         
-        tsp = random_instance(a, b, c, d)
+        print("Enter type (FULL_MATRIX, LOWER_DIAG_ROW, EUC_2D): ")
+        e = convert(String, chomp(readline()))
+
+        tsp = random_instance(a, b, c, d, e)
     else
         println("\nPlease enter correct number\n")
         return -1
