@@ -1,11 +1,9 @@
 using TSPLIB
 using Random
 
-
-
-#################################
-# Pierwszy fragment kodu szefie #
-#################################
+#########################
+# Wczytywanie instancji #
+#########################
 
 function load_tsp()
     println()
@@ -16,16 +14,13 @@ function load_tsp()
     return readTSP(path)
 end
 
-##############################
-# Drugi fragment kodu szefie #
-##############################
+#########################
+# Generowanie instancji #
+#########################
 
-function random_instance(size::Number, seed::Number, range::Number)
+function random_instance(size::Number, seed::Number, range::Number, name::String)
     rng = Random.MersenneTwister(seed)
-    points = convert(Array{Float64},rand(rng, 1:range, size, 2)) # Macierz size x 2
-    
-    print("File name with extension: ")
-    name = chomp(readline())
+    points = convert(Array{Float64},rand(rng, 1:range, size, 2))
 
     file = open("TSP/" * name, "w") 
     napis = "NAME: $name\nTYPE: TSP\nCOMMENT: User-generated TSP file\nDIMENSION: $size\nEDGE_WEIGHT_TYPE: EUC_2D\nNODE_COORD_SECTION\n" 
@@ -41,25 +36,9 @@ function random_instance(size::Number, seed::Number, range::Number)
     return readTSP("TSP/" * name)
 end
 
-###############################
-# Trzeci fragment kodu szefie #
-###############################
-
-function show(tsp_data::TSP)
-    println(tsp_data.weight)
-end
-
-################################
-# Czwarty fragment kodu szefie #
-################################
-
-function results(result::Vector{Int})
-    println(result)
-end
-
-##############################
-# Piąty fragment kodu szefie #
-##############################
+################
+# Funkcja celu #
+################
 
 function objective_function(tsp_data::TSP, result::Vector{Int})
     distance_matrix = tsp_data.weights
@@ -73,9 +52,9 @@ function objective_function(tsp_data::TSP, result::Vector{Int})
     return sum
 end
 
-###############################
-# Szósty fragment kodu szefie #
-###############################
+#######
+# PRD #
+#######
 
 function PRD(tsp_data::TSP, x::Vector{Int}, f_ref::Float64)
     return 100*(objective_function(tsp_data, x) - f_ref)/f_ref
@@ -107,6 +86,7 @@ function k_random(tsp_data::TSP, k::Number)
             solution = temp_solution
         end
     end    
+
     return solution
 end
 
@@ -126,6 +106,7 @@ function nearest_neighbour(tsp_data::TSP, starting_point::Number)
 
     distance_matrix = tsp_data.weights
     nodes_done = 1
+
     while nodes_done < size # lecimy tak długo, aż nie zostanie nam 1 wierzchołek
         for i in 1:size # interujemy po wszystkich wierzchołkach
             if status[i] == 1 # sprawdzamy czy wierzchołek był odwiedzony
@@ -147,6 +128,7 @@ function nearest_neighbour(tsp_data::TSP, starting_point::Number)
         solution[nodes_done] = temp_node
         status[temp_node] = 0
     end
+
     return solution
 end
 
@@ -160,10 +142,12 @@ function extended_neighbour(tsp_data::TSP)
 
     for i in 2:size 
         temp = nearest_neighbour(tsp_data, i)
+
         if objective_function(tsp_data, solution) > objective_function(tsp_data, temp)
             solution = temp
         end
     end
+
     return solution
 end
 
@@ -174,29 +158,27 @@ end
 function two_opt(tsp_data::TSP)
     rng = Random.MersenneTwister()
     size = tsp_data.dimension
-    local solution = shuffle(rng, Vector(1:size))                         # Wybieramy losowe rozwiąnie początkowe
-    #println("Solution 1", solution)
+    local solution = shuffle(rng, Vector(1:size))   # Wybieramy losowe rozwiąnie początkowe
     function swap(x, y, list)
         swapped = copy(list)
         swapped[x], swapped[y] = swapped[y], swapped[x]
         return swapped
     end
+
     local improved_flag = true
-    local current_new_solution = solution                                     # current_solution to kandydat na lepsze rozwiązanie
+    local current_new_solution = solution            # current_solution to kandydat na lepsze rozwiązanie
     local best_dist = objective_function(tsp_data, solution)
     while improved_flag == true
         improved_flag = false
-        for i in 2:size-1                                             # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
+        
+        for i in 2:size-1                            # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
             for j in i+1:size
                 new_solution = swap(i, j, solution)
                 current_dist = objective_function(tsp_data, new_solution)
     
                 if current_dist < best_dist
-
                     best_dist = current_dist
                     current_new_solution = new_solution
-                    #println("Solution 2", current_new_solution)
-                    #solution = new_solution
                     improved_flag = true
                 end
             end
@@ -254,6 +236,8 @@ function alg_test(tsp_data::TSP, algorithm::Function, objective::Function, reps:
 
     best_path = []
     best_dist = 0
+    opt_ex = isfile("TSP/" * tsp_data.name * ".opt.tour")
+
 
     for i in 1:reps
         final_path = algorithm(tsp_data, aux_args...)
@@ -270,35 +254,38 @@ function alg_test(tsp_data::TSP, algorithm::Function, objective::Function, reps:
                 best_path = final_path
                 best_dist = obj_dist
             end
-            if rem(i, (reps/20)) == 0
+            if rem(i, (reps/10)) == 0
                 println("$i out of $reps tests done (", (i/reps)*100, "%)")
-                
             end
         end
     end
 
-    optimal = get_optimal("berlin52.opt.tour")
-    
 
     println()
     println("-----------------RESULTS-----------------")
     println("Best path found: ", best_path)
     println("Best distance found: ", best_dist)
-    println("PRD: ", PRD(tsp_data, best_path, objective(tsp_data, optimal)), "%")
-end
 
+    if opt_ex == true
+        optimal = get_optimal(tsp_data.name * ".opt.tour")
+        println("PRD: ", PRD(tsp_data, best_path, objective(tsp_data, optimal)), "%")
+    else
+        println("Opt tour file doesn't exist, can't obtain PRD!")
+    end
+end
 
 ##########
 #  MAIN  #
 ##########
 
 function main()
-    repetitions = 1
-    a, b, c = 0, 0, 0
+    repetitions = 100
+    a, b, c, d = 0, 0, 0, 0
+    exit_flag = false
     local time = 0
 
     println()
-    println("Choose method of loading the instance:")
+    println("Choose an option from menu below:")
     println("1. Load existing instance")
     println("2. Generate new instance")
     print("Your choice: ")
@@ -316,49 +303,70 @@ function main()
 
         print("Range of values (from 1 to X): ")
         c = parse(Int, readline())
+
+        print("Enter the name of the instance with extension: ")
+        d = chomp(readline())
         
-        tsp = random_instance(a, b, c)
+        tsp = random_instance(a, b, c, d)
     else
         println("\nPlease enter correct number\n")
         return -1
     end
 
-    println()
-    println("Choose which algorithm you want to use:")
-    println("1. K-random")
-    println("2. Nearest neighbour")
-    println("3. Extended nearest neighbour")
-    println("4. 2-OPT")
-    print("Your choice: ")
-    choice = parse(Int, readline())
-    println()
+    while exit_flag == false
+        println()
+        println("Choose which algorithm you want to use:")
+        println("1. K-random")
+        println("2. Nearest neighbour")
+        println("3. Extended nearest neighbour")
+        println("4. 2-OPT")
+        print("Your choice: ")
+        choice = parse(Int, readline())
+        println()
+        
+        if choice == 1
+            println("You have chosen K-random")
+            print("Please enter the K-value: ")
+            a = parse(Int, readline())
+
+            time = @elapsed alg_test(tsp, k_random, objective_function, repetitions, a)
+        elseif choice == 2
+            println("You have chosen Nearest neighbour")
+            print("Please enter the starting node: ")
+            a = parse(Int, readline())
+
+            time = @elapsed alg_test(tsp, nearest_neighbour, objective_function, repetitions, a)            
+        elseif choice == 3
+            println("You have chosen Extended nearest neighbour")
+
+            time = @elapsed alg_test(tsp, extended_neighbour, objective_function, repetitions)
+        elseif choice == 4
+            println("You have chosen 2-OPT")    
+
+            time = @elapsed alg_test(tsp, two_opt, objective_function, repetitions)
+        else
+            println("Please enter correct number!\n")
+        end
+
+        println("Time elapsed: ", time, "s")
+        println()
     
-    if choice == 1
-        println("You have chosen K-random")
-        print("Please enter the K-value: ")
-        a = parse(Int, readline())
+        choice = 0
+        
+        println()
+        println("Do you want to repeat tests for other algorithm?")
+        println("1. Yes")
+        println("2-0. Exit app")
+        print("Your choice: ")
+        choice = parse(Int, readline())
 
-        time = @elapsed alg_test(tsp, k_random, objective_function, repetitions, a)
-    elseif choice == 2
-        println("You have chosen Nearest neighbour")
-        print("Please enter the starting node: ")
-        a = parse(Int, readline())
-
-        time = @elapsed alg_test(tsp, nearest_neighbour, objective_function, repetitions, a)            
-    elseif choice == 3
-        println("You have chosen Extended nearest neighbour")
-
-        time = @elapsed alg_test(tsp, extended_neighbour, objective_function, repetitions)
-    elseif choice == 4
-        println("You have chosen 2-OPT")    
-
-        time = @elapsed alg_test(tsp, two_opt, objective_function, repetitions)
-    else
-        println("Please enter correct number!\n")
+        if choice == 1
+            println("Going back")
+        else 
+            exit_flag = true
+        end
+    
     end
-
-    println("Time elapsed: ", time, "s")
-    println()
 end
 
 main()
