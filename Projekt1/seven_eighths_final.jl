@@ -292,7 +292,7 @@ end
 ################
 
 function data_simulation(tsp_data::TSP, algorithm::Function, reps::Int)
-    file = open("$algorithm\_speed_test.txt", "w")
+    file = open("$algorithm\\_speed_test.txt", "w")
     
     for i in 1:reps
         n = 5 * i
@@ -387,7 +387,7 @@ function main()
     println()
 end
 
-main()
+#main()
 
 # for i in 1:25
 #     n = 10 * i
@@ -395,13 +395,35 @@ main()
 #     seed = rand(Int,1)
 #     random_instance(n, abs(seed[1]), n, name)    
 # end
-# file = open("two_opt_speed_test.txt", "w")
-# for i in 1:25
-#     n = 10 * i
-#     name = "cum$n.tsp"
-#     tsp = readTSP("TSP/"*name)
-#     time = @elapsed two_opt(tsp) 
-#     println("$n")
-#     write(file, "$n $time\n")
-# end
-# close(file)
+file = open("extended_neighbour_speed_test.txt", "w")
+for i in 1:25
+    n = 10 * i
+    name = "cum$n.tsp"
+    tsp = readTSP("TSP/"*name)
+    time = @elapsed extended_neighbour(tsp) 
+    println("$n")
+    write(file, "$n $time\n")
+end
+close(file)
+
+file2 = open("nearest_neighbour_1_speed_test.txt", "w")
+for i in 1:25
+    n = 10 * i
+    name = "cum$n.tsp"
+    tsp = readTSP("TSP/"*name)
+    time = @elapsed nearest_neighbour(tsp, 1) 
+    println("$n")
+    write(file2, "$n $time\n")
+end
+close(file2)
+
+file3 = open("k_random_100000_speed_test.txt", "w")
+for i in 1:25
+    n = 10 * i
+    name = "cum$n.tsp"
+    tsp = readTSP("TSP/"*name)
+    time = @elapsed k_random(tsp, 100000) 
+    println("$n")
+    write(file3, "$n $time\n")
+end
+close(file3)
