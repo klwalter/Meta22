@@ -287,23 +287,6 @@ function alg_test(tsp_data::TSP, algorithm::Function, objective::Function, reps:
     println("PRD: ", PRD(tsp_data, best_path, objective(tsp_data, optimal)), "%")
 end
 
-################
-#  SIMULATION  #
-################
-
-function data_simulation(tsp_data::TSP, algorithm::Function, reps::Int)
-    file = open("$algorithm\\_speed_test.txt", "w")
-    
-    for i in 1:reps
-        n = 5 * i
-        time = @elapsed two_opt(tsp_data) 
-        println("$n")
-        write(file, "$n $time\n")
-    end
-
-    close(file)
-end
-
 ##########
 #  MAIN  #
 ##########
@@ -317,7 +300,6 @@ function main()
     println("Choose an option from menu below:")
     println("1. Load existing instance")
     println("2. Generate new instance")
-    println("3. Generate data from tests")
     print("Your choice: ")
     choice = parse(Int, readline())
 
@@ -338,12 +320,6 @@ function main()
         d = chomp(readline())
         
         tsp = random_instance(a, b, c, d)
-    elseif choice == 3
-        tsp = load_tsp()
-        
-        data_simulation(tsp, two_opt, 100)
-        
-        return
     else
         println("\nPlease enter correct number\n")
         return -1
@@ -387,7 +363,7 @@ function main()
     println()
 end
 
-main()
+#main()
 
 # for i in 1:250
 #     n = 10 * i
@@ -427,3 +403,36 @@ main()
 #     write(file3, "$n $time\n")
 # end
 # close(file3)
+
+# file = open("berlin_two_opt_test.txt", "w")
+
+# for i in 1:100
+#     name = "berlin52"
+#     tsp = readTSP("TSP/"*name*".tsp")
+#     solution = two_opt(tsp) 
+#     # dist = objective_function(tsp, solution)
+#     optimum = objective_function(tsp, get_optimal(name*".opt.tour"))
+#     p = PRD(tsp, solution, optimum)
+#     println("$i")
+#     write(file, "$i $p\n")
+# end
+# close(file)
+
+file = open("berlin_k_random_test.txt", "w")
+
+for i in 1:1000
+    name = "berlin52"
+    tsp = readTSP("TSP/"*name*".tsp")
+    if i == 1
+        solution = k_random(tsp, 1)
+    else
+        solution = k_random(tsp, (i-1)*10) 
+    end
+
+    # dist = objective_function(tsp, solution)
+    optimum = objective_function(tsp, get_optimal(name*".opt.tour"))
+    p = PRD(tsp, solution, optimum)
+    println("$i")
+    write(file, "$i $p\n")
+end
+close(file)
