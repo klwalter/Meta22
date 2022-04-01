@@ -2,7 +2,6 @@ using TSPLIB
 using Random
 
 
-
 #################################
 # Pierwszy fragment kodu szefie #
 #################################
@@ -20,12 +19,9 @@ end
 # Drugi fragment kodu szefie #
 ##############################
 
-function random_instance(size::Number, seed::Number, range::Number)
+function random_instance(size::Number, seed::Number, range::Number, name::String)
     rng = Random.MersenneTwister(seed)
     points = convert(Array{Float64},rand(rng, 1:range, size, 2)) # Macierz size x 2
-    
-    print("File name with extension: ")
-    name = chomp(readline())
 
     file = open("TSP/" * name, "w") 
     napis = "NAME: $name\nTYPE: TSP\nCOMMENT: User-generated TSP file\nDIMENSION: $size\nEDGE_WEIGHT_TYPE: EUC_2D\nNODE_COORD_SECTION\n" 
@@ -36,9 +32,13 @@ function random_instance(size::Number, seed::Number, range::Number)
         write(file, "$i $x $y\n")
     end
     write(file, "EOF\n\n")
+    write(file, "\n")
+    write(file, "\n")
+    write(file, "\n")
+    write(file, "\n")
     close(file)
     
-    return readTSP("TSP/" * name)
+    # return readTSP("TSP/" * name)
 end
 
 ###############################
@@ -174,6 +174,7 @@ end
 function two_opt(tsp_data::TSP)
     rng = Random.MersenneTwister()
     size = tsp_data.dimension
+    local d = tsp_data.weights
     local solution = shuffle(rng, Vector(1:size))                         # Wybieramy losowe rozwiąnie początkowe
     #println("Solution 1", solution)
     function swap(x, y, list)
@@ -181,6 +182,7 @@ function two_opt(tsp_data::TSP)
         swapped[x], swapped[y] = swapped[y], swapped[x]
         return swapped
     end
+
     local improved_flag = true
     local current_new_solution = solution                                     # current_solution to kandydat na lepsze rozwiązanie
     local best_dist = objective_function(tsp_data, solution)
@@ -189,7 +191,26 @@ function two_opt(tsp_data::TSP)
         for i in 2:size-1                                             # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
             for j in i+1:size
                 new_solution = swap(i, j, solution)
-                current_dist = objective_function(tsp_data, new_solution)
+                
+                # To odejmujemy
+                a = d[solution[i-1], solution[i]]
+                b = d[solution[i], solution[i+1]]
+                c = d[solution[j-1], solution[j]]
+                # d1 d(j,j+1)
+                # To dodajemy
+                e = d[solution[i-1], solution[j]]
+                #f d(i,j+1)
+                g = d[solution[j], solution[i+1]]
+                h = d[solution[j-1], solution[i]]
+
+                if j == size
+                    d1 = d[solution[j], solution[1]]
+                    f = d[solution[i], solution[1]]
+                else
+                    d1 = d[solution[j], solution[j+1]]
+                    f = d[solution[i], solution[j+1]]
+                end
+                current_dist = best_dist - (a + b + c + d1) + (e + f + g + h)
     
                 if current_dist < best_dist
 
@@ -287,6 +308,22 @@ function alg_test(tsp_data::TSP, algorithm::Function, objective::Function, reps:
     println("PRD: ", PRD(tsp_data, best_path, objective(tsp_data, optimal)), "%")
 end
 
+################
+#  SIMULATION  #
+################
+
+function data_simulation(tsp_data::TSP, algorithm::Function, reps::Int)
+    file = open("$algorithm\\_speed_test.txt", "w")
+    
+    for i in 1:reps
+        n = 5 * i
+        time = @elapsed two_opt(tsp_data) 
+        println("$n")
+        write(file, "$n $time\n")
+    end
+
+    close(file)
+end
 
 ##########
 #  MAIN  #
@@ -294,13 +331,14 @@ end
 
 function main()
     repetitions = 1
-    a, b, c = 0, 0, 0
+    a, b, c, d = 0, 0, 0, 0
     local time = 0
 
     println()
-    println("Choose method of loading the instance:")
+    println("Choose an option from menu below:")
     println("1. Load existing instance")
     println("2. Generate new instance")
+    println("3. Generate data from tests")
     print("Your choice: ")
     choice = parse(Int, readline())
 
@@ -316,8 +354,17 @@ function main()
 
         print("Range of values (from 1 to X): ")
         c = parse(Int, readline())
+
+        print("Enter the name of the instance with extension: ")
+        d = chomp(readline())
         
-        tsp = random_instance(a, b, c)
+        tsp = random_instance(a, b, c, d)
+    elseif choice == 3
+        tsp = load_tsp()
+        
+        data_simulation(tsp, two_opt, 100)
+        
+        return
     else
         println("\nPlease enter correct number\n")
         return -1
@@ -362,3 +409,42 @@ function main()
 end
 
 main()
+
+# for i in 1:250
+#     n = 10 * i
+#     name = "cuum$n.tsp" 
+#     seed = rand(Int,1)
+#     random_instance(n, abs(seed[1]), n, name)    
+# end
+# file = open("extended_neighbour_speed_test.txt", "w")
+# for i in 1:25
+#     n = 10 * i
+#     name = "cum$n.tsp"
+#     tsp = readTSP("TSP/"*name)
+#     time = @elapsed extended_neighbour(tsp) 
+#     println("$n")
+#     write(file, "$n $time\n")
+# end
+# close(file)
+
+# file2 = open("nearest_neighbour_1_speed_test.txt", "w")
+# for i in 1:250
+#     n = 10 * i
+#     name = "cuum$n.tsp"
+#     tsp = readTSP("TSP/"*name)
+#     time = @elapsed nearest_neighbour(tsp, 1) 
+#     println("$n")
+#     write(file2, "$n $time\n")
+# end
+# close(file2)
+
+# file3 = open("k_random_100000_speed_test.txt", "w")
+# for i in 1:25
+#     n = 10 * i
+#     name = "cum$n.tsp"
+#     tsp = readTSP("TSP/"*name)
+#     time = @elapsed k_random(tsp, 100000) 
+#     println("$n")
+#     write(file3, "$n $time\n")
+# end
+# close(file3)

@@ -387,43 +387,43 @@ function main()
     println()
 end
 
-#main()
+main()
 
-# for i in 1:25
+# for i in 1:250
 #     n = 10 * i
-#     name = "cum$n.tsp"
+#     name = "cuum$n.tsp" 
 #     seed = rand(Int,1)
 #     random_instance(n, abs(seed[1]), n, name)    
 # end
-file = open("extended_neighbour_speed_test.txt", "w")
-for i in 1:25
-    n = 10 * i
-    name = "cum$n.tsp"
-    tsp = readTSP("TSP/"*name)
-    time = @elapsed extended_neighbour(tsp) 
-    println("$n")
-    write(file, "$n $time\n")
-end
-close(file)
+# file = open("extended_neighbour_speed_test.txt", "w")
+# for i in 1:25
+#     n = 10 * i
+#     name = "cum$n.tsp"
+#     tsp = readTSP("TSP/"*name)
+#     time = @elapsed extended_neighbour(tsp) 
+#     println("$n")
+#     write(file, "$n $time\n")
+# end
+# close(file)
 
-file2 = open("nearest_neighbour_1_speed_test.txt", "w")
-for i in 1:25
-    n = 10 * i
-    name = "cum$n.tsp"
-    tsp = readTSP("TSP/"*name)
-    time = @elapsed nearest_neighbour(tsp, 1) 
-    println("$n")
-    write(file2, "$n $time\n")
-end
-close(file2)
+# file2 = open("nearest_neighbour_1_speed_test.txt", "w")
+# for i in 1:250
+#     n = 10 * i
+#     name = "cuum$n.tsp"
+#     tsp = readTSP("TSP/"*name)
+#     time = @elapsed nearest_neighbour(tsp, 1) 
+#     println("$n")
+#     write(file2, "$n $time\n")
+# end
+# close(file2)
 
-file3 = open("k_random_100000_speed_test.txt", "w")
-for i in 1:25
-    n = 10 * i
-    name = "cum$n.tsp"
-    tsp = readTSP("TSP/"*name)
-    time = @elapsed k_random(tsp, 100000) 
-    println("$n")
-    write(file3, "$n $time\n")
-end
-close(file3)
+# file3 = open("k_random_100000_speed_test.txt", "w")
+# for i in 1:25
+#     n = 10 * i
+#     name = "cum$n.tsp"
+#     tsp = readTSP("TSP/"*name)
+#     time = @elapsed k_random(tsp, 100000) 
+#     println("$n")
+#     write(file3, "$n $time\n")
+# end
+# close(file3)
