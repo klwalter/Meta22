@@ -32,8 +32,9 @@ function random_instance(size::Number, seed::Number, range::Number, name::String
     end
     write(file, "EOF\n\n")
     close(file)
-    
-    return readTSP("TSP/" * name)
+    tsp = readTSP("TSP/" * name)
+    println(tsp.weights)
+    return tsp
 end
 
 ################
@@ -195,29 +196,29 @@ end
 ################
 
 function get_optimal(variant::String)
-    path = "TSP/" * variant
+    path = "TSP/opt"
     file = open(path, "r")
-    solution = Int[]
-    numbers = false
-
+    local dist = 0
+    local found = false
     for line in eachline(file)
         if line == "-1"
             break
         end
-
-        if numbers
-            liczba = parse(Int, line)
-            append!(solution, liczba)
+        i = 1
+        while line[i] != ':'
+            i += 1
         end
-
-        if line == "TOUR_SECTION"
-            numbers = true
+        name = line[1:i-1]
+        dist = parse(Float64,line[i+1: length(line)])
+        
+        if variant == name
+            found = true
+            break
         end
     end
 
-    return solution
+    return [found, dist]
 end
-
 ###########
 #  TESTS  #
 ###########
@@ -236,8 +237,8 @@ function alg_test(tsp_data::TSP, algorithm::Function, objective::Function, reps:
 
     best_path = []
     best_dist = 0
-    opt_ex = isfile("TSP/" * tsp_data.name * ".opt.tour")
 
+    pair = get_optimal(tsp_data.name)
 
     for i in 1:reps
         final_path = algorithm(tsp_data, aux_args...)
@@ -266,9 +267,9 @@ function alg_test(tsp_data::TSP, algorithm::Function, objective::Function, reps:
     println("Best path found: ", best_path)
     println("Best distance found: ", best_dist)
 
-    if opt_ex == true
-        optimal = get_optimal(tsp_data.name * ".opt.tour")
-        println("PRD: ", PRD(tsp_data, best_path, objective(tsp_data, optimal)), "%")
+    if pair[1] == true
+        optimal = pair[2]
+        println("PRD: ", PRD(tsp_data, best_path, optimal), "%")
     else
         println("Opt tour file doesn't exist, can't obtain PRD!")
     end
@@ -305,7 +306,7 @@ function main()
         c = parse(Int, readline())
 
         print("Enter the name of the instance with extension: ")
-        d = chomp(readline())
+        d = convert(String, chomp(readline()))
         
         tsp = random_instance(a, b, c, d)
     else

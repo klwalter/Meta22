@@ -22,6 +22,9 @@ for line in lista:
     values.append(y)
 
 plt.plot(arguments, values)
+z = np.polyfit(arguments,values,11)
+p = np.poly1d(z)
+plt.plot(arguments, p(arguments), 'r--')
 # x = np.average(values)
 # arr = [x] * len(values)
 # plt.plot(arguments,arr)
