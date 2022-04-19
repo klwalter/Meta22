@@ -59,7 +59,7 @@ end
 ##########
 
 function main()
-    repetitions = 100
+    repetitions = 1
     a, b, c, d = 0, 0, 0, 0
     exit_flag = false
     local time = 0
@@ -103,6 +103,7 @@ function main()
         println("2. Nearest neighbour")
         println("3. Extended nearest neighbour")
         println("4. 2-OPT")
+        println("5. TS")
         print("Your choice: ")
         choice = parse(Int, readline())
         println()
@@ -118,15 +119,19 @@ function main()
             print("Please enter the starting node: ")
             a = parse(Int, readline())
 
-            time = @elapsed alg_test(tsp, nearest_neighbour, objective_function, repetitions, a)            
+            time = @elapsed alg_test(tsp, nearest_neighbour, objective_function, 1, a)            
         elseif choice == 3
             println("You have chosen Extended nearest neighbour")
 
-            time = @elapsed alg_test(tsp, extended_neighbour, objective_function, repetitions)
+            time = @elapsed alg_test(tsp, extended_neighbour, objective_function, 1)
         elseif choice == 4
             println("You have chosen 2-OPT")    
 
             time = @elapsed alg_test(tsp, two_opt, objective_function, repetitions)
+        elseif choice == 5
+            println("You have chosen TS")    
+            sol = two_opt(tsp)
+            time = @elapsed alg_test(tsp, tabu, objective_function, repetitions, sol)
         else
             println("Please enter correct number!\n")
         end

@@ -1,5 +1,6 @@
 using Random
 using TSPLIB
+using DataStructures
 ############
 # k-random #
 ############
@@ -93,9 +94,9 @@ function two_opt(tsp_data::TSP)
     rng = Random.MersenneTwister()
     size = tsp_data.dimension
     local solution = shuffle(rng, Vector(1:size))   # Wybieramy losowe rozwiąnie początkowe
-    function swap(x, y, list)
+    function invert(x, y, list)
         swapped = copy(list)
-        swapped[x], swapped[y] = swapped[y], swapped[x]
+        swapped[x:y] = swapped[y:-1:x]
         return swapped
     end
 
@@ -107,7 +108,7 @@ function two_opt(tsp_data::TSP)
         
         for i in 2:size-1                            # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
             for j in i+1:size
-                new_solution = swap(i, j, solution)
+                new_solution = invert(i, j, solution)
                 current_dist = objective_function(tsp_data, new_solution)
     
                 if current_dist < best_dist
@@ -123,3 +124,89 @@ function two_opt(tsp_data::TSP)
 
     return solution
 end
+
+###############
+# Tabu search #
+###############
+
+function tabu(tsp_data::TSP, start::Vector{Int})
+    local tabu_queue = Queue{Vector{Int}}()
+    local improved_flag = true
+
+    local current_new_solution = start                      # To jest lepsze
+    local best_dist = objective_function(tsp_data, start)
+
+    local size = tsp_data.dimension
+    local solution = start
+
+    # local candidate = start         #
+    # local cand_dist = best_dist     # Kandydat = co najwyżej 105% najlepszego 
+
+    function invert(x, y, list)
+        swapped = copy(list)
+        swapped[x:y] = swapped[y:-1:x]
+        return swapped
+    end
+
+    # To na dole do przerobienia
+    while improved_flag == true
+        improved_flag = false
+        local move = [0,0]
+        for i in 2:size-1                            # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
+            for j in i+1:size
+                
+                new_solution = invert(i, j, solution)
+                current_dist = objective_function(tsp_data, new_solution)
+                not_in_queue = true
+                for inv in tabu_queue
+                    if inv == (i,j) || inv ==(j,i)
+                        not_in_queue = false
+                        break
+                    end
+                end
+
+
+                if current_dist < best_dist && not_in_queue # zapisujemy najlepsze do tej pory
+                    best_dist = current_dist
+                    current_new_solution = new_solution
+                    move = [i,j]
+                    improved_flag = true
+                end
+
+            end
+        end
+        if move != [0,0]
+            enqueue!(tabu_queue, move)
+            if length(tabu_queue) > 100
+                dequeue!(tabu_queue)
+            end
+        end
+        solution = current_new_solution
+    end
+    return solution
+    # Taboo . To na górze do przerobienia
+end
+
+
+
+# sBest ← s0
+# bestCandidate ← s0
+# tabuList ← []
+# tabuList.push(s0)
+# while (not stoppingCondition())
+#     sNeighborhood ← getNeighbors(bestCandidate)
+#     bestCandidate ← sNeighborhood[0]
+#     for (sCandidate in sNeighborhood)
+#         if ( (not tabuList.contains(sCandidate)) and (fitness(sCandidate) > fitness(bestCandidate)) )
+#             bestCandidate ← sCandidate
+#         end
+#     end
+#     if (fitness(bestCandidate) > fitness(sBest))
+#         sBest ← bestCandidate
+#     end
+#     tabuList.push(bestCandidate)
+#     if (tabuList.size > maxTabuSize)
+#         tabuList.removeFirst()
+#     end
+# end
+# return sBest
