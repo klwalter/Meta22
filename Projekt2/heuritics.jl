@@ -131,82 +131,85 @@ end
 
 function tabu(tsp_data::TSP, start::Vector{Int})
     local tabu_queue = Queue{Vector{Int}}()
+    local long_time_memory = Stack{Vector}()
     local improved_flag = true
 
-    local current_new_solution = start                      # To jest lepsze
-    local best_dist = objective_function(tsp_data, start)
+    local current_solution = start                      
+    local current_best_dist = objective_function(tsp_data, start)
+    local best_solution = start
+    local best_dist = current_best_dist
 
     local size = tsp_data.dimension
-    local solution = start
+    local tabu_size = size*size
 
-    # local candidate = start         #
-    # local cand_dist = best_dist     # Kandydat = co najwyżej 105% najlepszego 
+
 
     function invert(x, y, list)
         swapped = copy(list)
         swapped[x:y] = swapped[y:-1:x]
         return swapped
     end
-
+    local move_tabu = []
     # To na dole do przerobienia
-    while improved_flag == true
+    while improved_flag 
+
         improved_flag = false
         local move = [0,0]
         for i in 2:size-1                            # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
             for j in i+1:size
                 
-                new_solution = invert(i, j, solution)
+                new_solution = invert(i, j, current_solution)
                 current_dist = objective_function(tsp_data, new_solution)
-                not_in_queue = true
+
+                # sprawdzamy czy jest na liście tabu
+                not_in_tabu_queue = true
                 for inv in tabu_queue
-                    if inv == (i,j) || inv ==(j,i)
-                        not_in_queue = false
+                    if inv == [i,j] || inv == [j,i]
+                        not_in_tabu_queue = false
                         break
                     end
                 end
 
+                # sprawdzamy czy jest na liście obecnego rozwiąnia
 
-                if current_dist < best_dist && not_in_queue # zapisujemy najlepsze do tej pory
-                    best_dist = current_dist
-                    current_new_solution = new_solution
+                not_in_move_tabu = true
+                for inv in move_tabu
+                    if inv == [i,j] || inv == [j,i]
+                        not_in_move_tabu = false
+                        break
+                    end
+                end
+
+                if current_dist < current_best_dist && not_in_tabu_queue # zapisujemy najlepsze do tej pory
+                    if current_dist < best_dist
+                        best_dist = current_best_dist
+                        best_solution = new_solution 
+                    end
+                    current_best_dist = current_dist
+                    current_solution = new_solution
                     move = [i,j]
                     improved_flag = true
                 end
 
             end
         end
+        if !improved_flag && !isempty(long_time_memory)
+            current_solution, tabu_queue, move_tabu = pop!(long_time_memory)
+            improved_flag = true
+        else
+            append!(move_tabu, move)
+            push!(long_time_memory,[current_solution, tabu_queue, move_tabu])
+        end
         if move != [0,0]
             enqueue!(tabu_queue, move)
-            if length(tabu_queue) > 100
+            move_tabu = []
+            if length(tabu_queue) > tabu_size
                 dequeue!(tabu_queue)
             end
         end
-        solution = current_new_solution
     end
-    return solution
+
+    return best_solution
     # Taboo . To na górze do przerobienia
 end
 
-
-
-# sBest ← s0
-# bestCandidate ← s0
-# tabuList ← []
-# tabuList.push(s0)
-# while (not stoppingCondition())
-#     sNeighborhood ← getNeighbors(bestCandidate)
-#     bestCandidate ← sNeighborhood[0]
-#     for (sCandidate in sNeighborhood)
-#         if ( (not tabuList.contains(sCandidate)) and (fitness(sCandidate) > fitness(bestCandidate)) )
-#             bestCandidate ← sCandidate
-#         end
-#     end
-#     if (fitness(bestCandidate) > fitness(sBest))
-#         sBest ← bestCandidate
-#     end
-#     tabuList.push(bestCandidate)
-#     if (tabuList.size > maxTabuSize)
-#         tabuList.removeFirst()
-#     end
-# end
-# return sBest

@@ -1,10 +1,7 @@
 using DataStructures
-
-q = Queue{Int}()
-n = 5
-enqueue!(q, n)
-enqueue!(q, 2)
-enqueue!(q, 3)
-enqueue!(q, 7)
-dequeue!(q)
-println(length(q))
+lista = [1,2,3]
+s = Stack{Vector}()
+push!(s,lista)
+x,y = pop!(s)
+println(x)
+println(y)

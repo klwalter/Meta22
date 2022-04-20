@@ -59,7 +59,7 @@ end
 ##########
 
 function main()
-    repetitions = 1
+    repetitions = 10
     a, b, c, d = 0, 0, 0, 0
     exit_flag = false
     local time = 0
@@ -130,7 +130,7 @@ function main()
             time = @elapsed alg_test(tsp, two_opt, objective_function, repetitions)
         elseif choice == 5
             println("You have chosen TS")    
-            sol = two_opt(tsp)
+            sol = extended_neighbour(tsp)
             time = @elapsed alg_test(tsp, tabu, objective_function, repetitions, sol)
         else
             println("Please enter correct number!\n")
