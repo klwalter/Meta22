@@ -34,9 +34,10 @@ function alg_test(tsp_data::TSP, algorithm::Function, objective::Function, reps:
                 best_path = final_path
                 best_dist = obj_dist
             end
-            if rem(i, (reps/10)) == 0
-                println("$i out of $reps tests done (", (i/reps)*100, "%)")
-            end
+        end
+        
+        if rem(i, (reps/10)) == 0
+            println("$i out of $reps tests done (", (i/reps)*100, "%)")
         end
     end
 
@@ -75,20 +76,28 @@ function main()
         tsp = load_tsp()
     elseif choice == 2
         println()
-        print("Please enter parameters for generator:\nNumber of nodes: ")
-        a = parse(Int, readline())
+        print("Please enter parameters for generator:\nType of instance (FULL_MATRIX, LOWER_DIAG_ROW, EUC_2D): ")
+        a = convert(String, chomp(readline()))
 
-        print("Seed for RNG: ")
+        if a != "EUC_2D" && a != "FULL_MATRIX" && a!= "LOWER_DIAG_ROW"
+            println()
+            println("Please enter correct type of instance\n")
+            return
+        end
+
+        print("Number of nodes: ")
         b = parse(Int, readline())
 
-        print("Range of values (from 1 to X): ")
+        print("Seed for RNG: ")
         c = parse(Int, readline())
 
+        print("Range of values (from 1 to X): ")
+        d = parse(Int, readline())
+
         print("Enter the name of the instance with extension: ")
-        d = convert(String, chomp(readline()))
-        
-        print("Enter type (FULL_MATRIX, LOWER_DIAG_ROW, EUC_2D): ")
         e = convert(String, chomp(readline()))
+        
+        
 
         tsp = random_instance(a, b, c, d, e)
     else
@@ -130,8 +139,9 @@ function main()
             time = @elapsed alg_test(tsp, two_opt, objective_function, repetitions)
         elseif choice == 5
             println("You have chosen TS")    
-            sol = extended_neighbour(tsp)
-            time = @elapsed alg_test(tsp, tabu, objective_function, repetitions, sol)
+            
+            starter = extended_neighbour(tsp)
+            time = @elapsed alg_test(tsp, tabu_search, objective_function, repetitions, starter)
         else
             println("Please enter correct number!\n")
         end

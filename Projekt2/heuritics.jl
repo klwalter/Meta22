@@ -1,6 +1,18 @@
 using Random
 using TSPLIB
 using DataStructures
+
+##########
+# invert #
+##########
+
+function invert!(x, y, list)
+    inverted = copy(list)
+    inverted[x:y] = inverted[y:-1:x]
+    return inverted
+end
+
+
 ############
 # k-random #
 ############
@@ -94,11 +106,6 @@ function two_opt(tsp_data::TSP)
     rng = Random.MersenneTwister()
     size = tsp_data.dimension
     local solution = shuffle(rng, Vector(1:size))   # Wybieramy losowe rozwiąnie początkowe
-    function invert(x, y, list)
-        swapped = copy(list)
-        swapped[x:y] = swapped[y:-1:x]
-        return swapped
-    end
 
     local improved_flag = true
     local current_new_solution = solution            # current_solution to kandydat na lepsze rozwiązanie
@@ -108,7 +115,7 @@ function two_opt(tsp_data::TSP)
         
         for i in 2:size-1                            # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
             for j in i+1:size
-                new_solution = invert(i, j, solution)
+                new_solution = invert!(i, j, solution)
                 current_dist = objective_function(tsp_data, new_solution)
     
                 if current_dist < best_dist
@@ -129,10 +136,9 @@ end
 # Tabu search #
 ###############
 
-function tabu(tsp_data::TSP, start::Vector{Int})
+function tabu_search(tsp_data::TSP, start::Vector{Int})
     local tabu_queue = Queue{Vector{Int}}()
     local long_time_memory = Stack{Vector}()
-    local improved_flag = true
 
     local current_solution = start                      
     local current_best_dist = objective_function(tsp_data, start)
@@ -141,15 +147,9 @@ function tabu(tsp_data::TSP, start::Vector{Int})
 
     local size = tsp_data.dimension
     local tabu_size = size*size
-
-
-
-    function invert(x, y, list)
-        swapped = copy(list)
-        swapped[x:y] = swapped[y:-1:x]
-        return swapped
-    end
     local move_tabu = []
+    local improved_flag = true
+
     # To na dole do przerobienia
     while improved_flag 
 
@@ -158,7 +158,7 @@ function tabu(tsp_data::TSP, start::Vector{Int})
         for i in 2:size-1                            # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
             for j in i+1:size
                 
-                new_solution = invert(i, j, current_solution)
+                new_solution = invert!(i, j, current_solution)
                 current_dist = objective_function(tsp_data, new_solution)
 
                 # sprawdzamy czy jest na liście tabu

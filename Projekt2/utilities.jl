@@ -17,7 +17,7 @@ end
 # Generowanie instancji #
 #########################
 
-function random_instance(size::Number, seed::Number, range::Number, name::String, type::String)
+function random_instance(type::String, size::Number, seed::Number, range::Number, name::String)
     rng = Random.MersenneTwister(seed)
     points = convert(Array{Float64},rand(rng, 1:range, size, 2))
 
@@ -31,14 +31,17 @@ function random_instance(size::Number, seed::Number, range::Number, name::String
     end
     write(file, "EOF\n\n")
     close(file)
+    
     tsp = readTSP("TSP/" * name)
     
     if type == "FULL_MATRIX"
-        napis = "NAME: $name\nTYPE: TSP\nCOMMENT: User-generated TSP file\nDIMENSION: $size\nEDGE_WEIGHT_TYPE: FULL_MATRIX\nEDGE_WEIGHT_SECTION\n" 
         file = open("TSP/" * name, "w")
+        napis = "NAME: $name\nTYPE: TSP\nCOMMENT: User-generated TSP file\nDIMENSION: $size\nEDGE_WEIGHT_TYPE: FULL_MATRIX\nEDGE_WEIGHT_SECTION\n" 
+
         write(file,napis)
         mat = tsp.weights
         s = tsp.dimension
+
         for i in 1:s
             for j in 1:s
                 x = mat[i,j]
@@ -47,8 +50,9 @@ function random_instance(size::Number, seed::Number, range::Number, name::String
             write(file, "\n")
         end
     elseif type == "LOWER_DIAG_ROW"
-        napis = "NAME: $name\nTYPE: TSP\nCOMMENT: User-generated TSP file\nDIMENSION: $size\nEDGE_WEIGHT_TYPE: LOWER_DIAG_ROW\nEDGE_WEIGHT_SECTION\n" 
         file = open("TSP/" * name, "w")
+        napis = "NAME: $name\nTYPE: TSP\nCOMMENT: User-generated TSP file\nDIMENSION: $size\nEDGE_WEIGHT_TYPE: LOWER_DIAG_ROW\nEDGE_WEIGHT_SECTION\n" 
+
         write(file,napis)
         mat = tsp.weights
         s = tsp.dimension
@@ -61,6 +65,7 @@ function random_instance(size::Number, seed::Number, range::Number, name::String
             end
         end
     end
+    
     write(file, "EOF\n\n")
     close(file)
     println(tsp.weights)
