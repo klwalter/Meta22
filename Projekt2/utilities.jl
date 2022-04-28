@@ -1,5 +1,5 @@
 using TSPLIB
-
+using Random
 #########################
 # Wczytywanie instancji #
 #########################
@@ -68,7 +68,6 @@ function random_instance(type::String, size::Number, seed::Number, range::Number
     
     write(file, "EOF\n\n")
     close(file)
-    println(tsp.weights)
     return tsp
 end
 ################
@@ -123,4 +122,13 @@ function get_optimal(variant::String)
     end
 
     return [found, dist]
+end
+
+global i = 100000
+
+while i > 0
+
+    name = "cum" * "$i" *".tsp"
+    random_instance("Dupa", 420, 3143256435745, 10, name)
+    global i -= 1
 end
