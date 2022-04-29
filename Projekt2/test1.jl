@@ -140,8 +140,8 @@ function main()
         elseif choice == 5
             println("You have chosen TS")    
             
-            starter = extended_neighbour(tsp)
-            time = @elapsed alg_test(tsp, tabu_search, objective_function, repetitions, starter)
+            starter = k_random(tsp,1)
+            time = @elapsed alg_test(tsp, tabu_search, objective_function, repetitions, k_random, 1)
         else
             println("Please enter correct number!\n")
         end

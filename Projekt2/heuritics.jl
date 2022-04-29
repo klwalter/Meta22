@@ -122,7 +122,7 @@ function two_opt(tsp_data::TSP)
     local best_dist = objective_function(tsp_data, solution)
     while improved_flag == true
         improved_flag = false
-        
+
         for i in 2:size-1                            # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
             for j in i+1:size
                 new_solution = invert(i, j, solution)
@@ -146,33 +146,33 @@ end
 # Tabu search #
 ###############
 
-function tabu_search(tsp_data::TSP, start::Vector{Int})
+function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
     local tabu_queue = Queue{Vector{Int}}()
     local long_time_memory = Stack{Vector}()
 
+    local start = start_algotithm(tsp_data, aux_args...)
     local current_solution = start                                      # Aktualny wierzchołek
-    local current_best_dist = objective_function(tsp_data, start)       # objective_function tego wierzchołka / sąsiada
+    local current_best_dist = -1                                        # objective_function tego wierzchołka / sąsiada
     local best_solution = start                                         # najlepsze rozwiąnie
-    local best_dist = current_best_dist                                 # objective_function tego wierzchołka
+    local best_dist = objective_function(tsp_data, start)               # objective_function tego wierzchołka
 
     local size = tsp_data.dimension
-    local tabu_size = size
+    local tabu_size = 10
     local move_tabu = []
+    local move
 
     # Warunki stopu
     local time_limit = Second(120)
     local time_start = Dates.now()
     local time_elapsed = Second(0)
-    local iteration_limit = size^2
+    local iteration_limit = size
     local iteration_counter = 0
 
     # To na dole do przerobienia
     while iteration_counter < iteration_limit 
         iteration_counter += 1
-        current_solution = invert(2,3, current_solution)
-        current_best_dist = objective_function(tsp_data, current_solution)
-
-        local move = [0,0]
+        current_best_dist = -1                                          # nie wybraliśmy sąsiada
+        move = [0,0]
         for i in 2:size-1, j in i+1:size                             # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
             if time_elapsed > time_limit
                 return best_solution
@@ -200,11 +200,16 @@ function tabu_search(tsp_data::TSP, start::Vector{Int})
                 end
             end
 
-            if new_solution_dist < current_best_dist && not_in_tabu_queue && not_in_move_tabu # zapisujemy najlepsze do tej pory
+            if not_in_tabu_queue && not_in_move_tabu && current_best_dist == -1  # Znajdujemy pierwszy, który nie jest na liście tabu
                 current_best_dist = new_solution_dist
                 current_solution = new_solution
                 move = [i,j]
-
+            end
+            
+            if new_solution_dist <= current_best_dist && not_in_move_tabu && not_in_tabu_queue   # zapisujemy najlepsze do tej pory
+                current_best_dist = new_solution_dist
+                current_solution = new_solution
+                move = [i,j]
             end
         end
 
@@ -214,15 +219,17 @@ function tabu_search(tsp_data::TSP, start::Vector{Int})
             best_solution = current_solution 
         end
 
+        println(move)
 
-        if !isempty(long_time_memory)
-            move, tabu_queue, move_tabu = pop!(long_time_memory)
-            current_solution = invert(move[1], move[2], current_solution)
+        # if !isempty(long_time_memory)
+        #     move, tabu_queue, move_tabu = pop!(long_time_memory)
+        #     current_solution = invert(move[1], move[2], current_solution)
+        #     move = [0,0]
 
-        else
-            append!(move_tabu, move)
-            push!(long_time_memory,[move, tabu_queue, move_tabu])
-        end
+        # else
+        #     append!(move_tabu, move)
+        #     push!(long_time_memory,[move, tabu_queue, move_tabu])
+        # end
 
 
         if move != [0,0]
