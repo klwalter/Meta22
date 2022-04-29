@@ -1,5 +1,4 @@
 using TSPLIB
-using Random
 #########################
 # Wczytywanie instancji #
 #########################
@@ -122,13 +121,4 @@ function get_optimal(variant::String)
     end
 
     return [found, dist]
-end
-
-global i = 100000
-
-while i > 0
-
-    name = "cum" * "$i" *".tsp"
-    random_instance("Dupa", 420, 3143256435745, 10, name)
-    global i -= 1
 end
