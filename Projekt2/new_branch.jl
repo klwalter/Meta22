@@ -260,11 +260,11 @@ end
 # Pierwsze
 # for i in 1:50
 # tabu_search(berlin, cos, tabu_size = i)
-bays = readTSP("TSP/bays29.tsp")
+# bays = readTSP("TSP/bays29.tsp")
 berlin = readTSP("TSP/berlin52.tsp")
-eil = readTSP("TSP/eil76.tsp")
-br = readTSP("TSP/br17.atsp")
-problemy = [bays, berlin, eil, br]
+# eil = readTSP("TSP/eil76.tsp")
+# br = readTSP("TSP/br17.atsp")
+# problemy = [bays, berlin, eil, br]
 # file = open("data/1/PRD_berlin_2opt.txt", "w")
 # for i in 1:50 
 #     prd = PRD(berlin, tabu_search(berlin, two_opt, i), 7542.0)
@@ -320,20 +320,36 @@ problemy = [bays, berlin, eil, br]
 #     random_instance("EUC_2D", n, 2137, 100, name)
 #     println("$n")
 # end
-file = open("data/3/time_comp.txt", "w")
-for i in 1:25
-    n = 10 * i
-    name = "cum$n.tsp"
-    tsp = readTSP("TSP/"*name)
-    println("$(tsp.name)")
-    time = @elapsed tabu_search(tsp, two_opt)
-    println("$n")
-    write(file, "$n $time\n")
-end
-close(file)
+
+# file = open("data/3/time_comp_rand.txt", "w")
+# for i in 1:25
+#     n = 10 * i
+#     name = "cum$n.tsp"
+#     tsp = readTSP("TSP/"*name)
+#     println("$(tsp.name)")
+#     time = @elapsed tabu_search(tsp, k_random,1)
+#     println("$n")
+#     write(file, "$n $time\n")
+# end
+# close(file)
+
+# cum250 = readTSP("TSP/cum250.tsp")
+# tabu_search(cum250, two_opt)
+
 # time = @elapsed tabu_search(berlin, two_opt, sqrt)
+
 #Czwarte
 #raz komentujemy dodawanie do pamięci (też berlin)
 
 #Piąte
 #tabu_search(na każdym algorytmie)
+file = open("data/5/berlin.txt", "w")
+
+prd = PRD(berlin, tabu_search(berlin, two_opt),7542.0)
+write(file, "two_opt $prd\n")
+prd = PRD(berlin, tabu_search(berlin, extended_neighbour),7542.0)
+write(file, "extended_neighbour $prd\n")
+prd = PRD(berlin, tabu_search(berlin, k_random,1),7542.0)
+write(file, "random $prd\n")
+
+close(file)
