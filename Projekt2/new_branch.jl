@@ -3,6 +3,7 @@ using TSPLIB
 using DataStructures
 using Dates
 using TimesDates
+include("utilities.jl")
 ##########
 # invert #
 ##########
@@ -173,7 +174,6 @@ function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
     local stagnation_time_start = Dates.now()
     local stagnation_time_elapsed = Second(0)
 
-    
     while iteration_counter < iteration_limit 
         iteration_counter += 1
         current_best_dist = -1                                          # nie wybraliśmy sąsiada
@@ -182,7 +182,6 @@ function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
 
             time_elapsed = Dates.now() - time_start
             stagnation_time_elapsed = Dates.now() - stagnation_time_start
-
             if time_elapsed > time_limit
                 return best_solution
             end
@@ -261,7 +260,47 @@ end
 # Pierwsze
 # for i in 1:50
 # tabu_search(berlin, cos, tabu_size = i)
+bays = readTSP("TSP/bays29.tsp")
+berlin = readTSP("TSP/berlin52.tsp")
+eil = readTSP("TSP/eil76.tsp")
+br = readTSP("TSP/br17.atsp")
+problemy = [bays, berlin, eil, br]
+# file = open("data/1/PRD_berlin_2opt.txt", "w")
+# for i in 1:50 
+#     prd = PRD(berlin, tabu_search(berlin, two_opt, i), 7542.0)
+#     write(file, "$i $prd\n")
+#     println(i)
+# end
+# close(file)
 
+# file = open("extended_neighbour_speed_test.txt", "w")
+# for i in 1:25
+#     n = 10 * i
+#     name = "cum$n.tsp"
+#     tsp = readTSP("TSP/"*name)
+#     time = @elapsed extended_neighbour(tsp) 
+#     println("$n")
+#     write(file, "$n $time\n")
+# end
+# close(file)
+# function linear(n)
+#     return n
+# end
+
+# function stala(n)
+#     return 5
+# end
+# funkcje = [log2, sqrt, linear, stala]
+
+# for f in funkcje, prob in problemy
+
+#     file = open("data/2/$(f)_$(prob.name)", "w")
+#     ref = get_optimal("$(prob.name)")[2]
+#     prd = PRD(prob, tabu_search(prob, two_opt, f), ref)
+#     write(file, "$(prob.name) $prd\n")
+#     println("$f")
+#     close(file)
+# end
 # Drugie 
 # tabu_search(problem1, tabu_size = const)
 # tabu_search(problem2, tabu_size = const)
@@ -275,7 +314,24 @@ end
 
 # Trzecie 
 # tabu_search(berlin) @elapsed / n^4
-
+# for i in 1:25
+#     n = 10 * i
+#     name = "cum$n.tsp"
+#     random_instance("EUC_2D", n, 2137, 100, name)
+#     println("$n")
+# end
+file = open("data/3/time_comp.txt", "w")
+for i in 1:25
+    n = 10 * i
+    name = "cum$n.tsp"
+    tsp = readTSP("TSP/"*name)
+    println("$(tsp.name)")
+    time = @elapsed tabu_search(tsp, two_opt)
+    println("$n")
+    write(file, "$n $time\n")
+end
+close(file)
+# time = @elapsed tabu_search(berlin, two_opt, sqrt)
 #Czwarte
 #raz komentujemy dodawanie do pamięci (też berlin)
 
