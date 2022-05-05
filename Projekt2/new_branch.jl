@@ -165,7 +165,7 @@ function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
     local time_limit = Second(120)
     local time_start = Dates.now()
     local time_elapsed = Second(0)
-    local iteration_limit = size
+    local iteration_limit = size*size/2
     local iteration_counter = 0
 
     # Wykrywanie stagnacji
@@ -258,3 +258,26 @@ function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
     
 end
 
+# Pierwsze
+# for i in 1:50
+# tabu_search(berlin, cos, tabu_size = i)
+
+# Drugie 
+# tabu_search(problem1, tabu_size = const)
+# tabu_search(problem2, tabu_size = const)
+# tabu_search(problem3, tabu_size = const)
+# tabu_search(problem1, tabu_size = log)
+# tabu_search(problem2, tabu_size = log)
+# tabu_search(problem3, tabu_size = log)
+# .
+# .
+# .
+
+# Trzecie 
+# tabu_search(berlin) @elapsed / n^4
+
+#Czwarte
+#raz komentujemy dodawanie do pamięci (też berlin)
+
+#Piąte
+#tabu_search(na każdym algorytmie)
