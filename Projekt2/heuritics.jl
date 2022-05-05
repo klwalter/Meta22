@@ -168,15 +168,37 @@ function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
     local iteration_limit = size
     local iteration_counter = 0
 
-    # To na dole do przerobienia
+    # Wykrywanie stagnacji
+    local stagnation_time_limit = Second(10)
+    local stagnation_time_start = Dates.now()
+    local stagnation_time_elapsed = Second(0)
+
+    
     while iteration_counter < iteration_limit 
         iteration_counter += 1
         current_best_dist = -1                                          # nie wybraliśmy sąsiada
         move = [0,0]
         for i in 2:size-1, j in i+1:size                             # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
+
+            time_elapsed = Dates.now() - time_start
+            stagnation_time_elapsed = Dates.now() - stagnation_time_start
+
             if time_elapsed > time_limit
                 return best_solution
-                
+            end
+
+            if stagnation_time_elapsed > stagnation_time_limit && ( time_limit - time_elapsed > stagnation_time_limit )
+                if isempty(long_time_memory)
+                    current_solution = shuffle(current_solution)
+                elseif length(long_time_memory) > 1
+                    pop!(long_time_memory)
+                    current_solution, tabu_queue, move_tabu = first(long_time_memory)
+                else
+                    current_solution, tabu_queue, move_tabu = pop!(long_time_memory)
+                end
+                current_best_dist = best_dist 
+                move = [0,0]
+                break
             end
             new_solution = invert(i, j, current_solution)
             new_solution_dist = objective_function(tsp_data, new_solution)
@@ -206,7 +228,7 @@ function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
                 move = [i,j]
             end
             
-            if new_solution_dist <= current_best_dist && not_in_move_tabu && not_in_tabu_queue   # zapisujemy najlepsze do tej pory
+            if new_solution_dist < current_best_dist && not_in_move_tabu && not_in_tabu_queue   # zapisujemy najlepsze do tej pory
                 current_best_dist = new_solution_dist
                 current_solution = new_solution
                 move = [i,j]
@@ -214,23 +236,14 @@ function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
         end
 
 
-        if current_best_dist < best_dist
+        if current_best_dist < best_dist    # Mamy lepsze
+            stagnation_time_start = Dates.now()
+            stagnation_time_elapsed = Second(0)
+            append!(move_tabu, move)
             best_dist = current_best_dist
             best_solution = current_solution 
+            push!(long_time_memory, [best_solution, tabu_queue, move_tabu])
         end
-
-        println(move)
-
-        # if !isempty(long_time_memory)
-        #     move, tabu_queue, move_tabu = pop!(long_time_memory)
-        #     current_solution = invert(move[1], move[2], current_solution)
-        #     move = [0,0]
-
-        # else
-        #     append!(move_tabu, move)
-        #     push!(long_time_memory,[move, tabu_queue, move_tabu])
-        # end
-
 
         if move != [0,0]
             enqueue!(tabu_queue, move)
@@ -242,6 +255,6 @@ function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
     end
 
     return best_solution
-    # Taboo . To na górze do przerobienia
+    
 end
 
