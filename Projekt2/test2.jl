@@ -1,5 +1,6 @@
 include("heuritics.jl")
 include("utilities.jl")
+include("new_utils.jl")
 
 ###########
 #  TESTS  #
@@ -62,7 +63,8 @@ end
 
 function main()
     repetitions = 10
-    a, b, c, d = 0, 0, 0, 0
+    a = false
+    b, c, d, e, f = 0, 0, 0, 0, 0
     exit_flag = false
     local time = 0
 
@@ -79,30 +81,37 @@ function main()
         tsp = load_tsp()
     elseif choice == 2
         println()
-        print("Please enter parameters for generator:\nType of instance (FULL_MATRIX, LOWER_DIAG_ROW, EUC_2D): ")
-        a = convert(String, chomp(readline()))
+        print("Please enter parameters for generator:\nAsymmetric format? (1 - true): ")
+        a = parse(Bool, readline())
 
-        if a != "EUC_2D" && a != "FULL_MATRIX" && a!= "LOWER_DIAG_ROW"
-            println()
-            println("Please enter correct type of instance\n")
-            return
+        if a != 1
+            print("Type of instance (FULL_MATRIX, LOWER_DIAG_ROW, EUC_2D): ")
+            b = convert(String, chomp(readline()))
+
+            if b != "EUC_2D" && b != "FULL_MATRIX" && b != "LOWER_DIAG_ROW"
+                println()
+                println("Please enter correct type of instance\n")
+                return
+            end
+        else
+            b = "FULL_MATRIX"
         end
 
         print("Number of nodes: ")
-        b = parse(Int, readline())
-
-        print("Seed for RNG: ")
         c = parse(Int, readline())
 
-        print("Range of values (from 1 to X): ")
+        print("Seed for RNG: ")
         d = parse(Int, readline())
 
+        print("Range of values (from 1 to X): ")
+        e = parse(Int, readline())
+
         print("Enter the name of the instance with extension: ")
-        e = convert(String, chomp(readline()))
+        f = convert(String, chomp(readline()))
         
         
 
-        tsp = random_instance(a, b, c, d, e)
+        tsp = random_instance(a, b, c, d, e, f)
     else
         println("\nPlease enter correct number\n")
         return -1
@@ -156,7 +165,7 @@ function main()
             println("\t|You have chosen Tabu search|")    
             println("\t+---------------------------+")
 
-            print("\n/ Please enter the starting solution algorithm for Tabu search:  \n")
+            print("\n/ Choose starting solution algorithm for Tabu search:  \n")
             print("| 1. Random array\n| 2. K-random\n| 3. Extended nearest neighbour\n| 4. 2-OPT\n")
             print("\\ Your choice: ")
             a = parse(Int, readline())
