@@ -177,7 +177,7 @@ function main()
                 b = parse(Int, readline())
                 time = @elapsed alg_test(tsp, tabu_search, objective_function, repetitions, k_random, b)
             elseif a == 3
-                time = @elapsed alg_test(tsp, tabu_search, objective_function, repetitions, extended_neighbour)
+                time = @elapsed alg_test(tsp, tabu_search, objective_function, 1, extended_neighbour)
             elseif a == 4
                 time = @elapsed alg_test(tsp, tabu_search, objective_function, repetitions, two_opt)
             end

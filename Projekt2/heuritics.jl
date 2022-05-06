@@ -173,7 +173,14 @@ function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
     local stagnation_time_start = Dates.now()
     local stagnation_time_elapsed = Second(0)
 
-    
+    # Wypisywanie
+    local optimum = get_optimal(tsp_data.name)
+    local prd = "nie znaleziono optymalnej trasy"
+    local flag = optimum[1]
+    if flag == true
+        prd = PRD(tsp_data, best_solution, optimum[2])
+    end
+    println("Numer iteracji: $iteration_counter, długość: $best_dist, prd: $prd%") 
     while iteration_counter < iteration_limit 
         iteration_counter += 1
         current_best_dist = -1                                          # nie wybraliśmy sąsiada
@@ -241,7 +248,12 @@ function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
             stagnation_time_elapsed = Second(0)
             append!(move_tabu, move)
             best_dist = current_best_dist
-            best_solution = current_solution 
+            best_solution = current_solution
+
+            if flag == true
+                prd = PRD(tsp_data, best_solution, optimum[2])
+            end
+            println("Numer iteracji: $iteration_counter, długość: $best_dist, prd: $prd%") 
             push!(long_time_memory, [best_solution, tabu_queue, move_tabu])
         end
 
