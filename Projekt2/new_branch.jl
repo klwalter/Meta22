@@ -147,7 +147,7 @@ end
 # Tabu search #
 ###############
 
-function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
+function tabu_search(tsp_data::TSP, start_algotithm::Function, f::Function, aux_args...)
     local tabu_queue = Queue{Vector{Int}}()
     local long_time_memory = Stack{Vector}()
 
@@ -158,7 +158,7 @@ function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
     local best_dist = objective_function(tsp_data, start)               # objective_function tego wierzchołka
 
     local size = tsp_data.dimension
-    local tabu_size = sqrt(size)
+    local tabu_size = f(size)
     local move_tabu = []
     local move
 
@@ -261,7 +261,7 @@ end
 # for i in 1:50
 # tabu_search(berlin, cos, tabu_size = i)
 # bays = readTSP("TSP/bays29.tsp")
-berlin = readTSP("TSP/berlin52.tsp")
+# berlin = readTSP("TSP/berlin52.tsp")
 # eil = readTSP("TSP/eil76.tsp")
 # br = readTSP("TSP/br17.atsp")
 # problemy = [bays, berlin, eil, br]
@@ -283,24 +283,25 @@ berlin = readTSP("TSP/berlin52.tsp")
 #     write(file, "$n $time\n")
 # end
 # close(file)
-# function linear(n)
-#     return n
-# end
+function linear(n)
+    return n
+end
 
-# function stala(n)
-#     return 5
-# end
-# funkcje = [log2, sqrt, linear, stala]
+function stala(n)
+    return 5
+end
+funkcje = [log2, sqrt, linear, stala]
+ft = readTSP("TSP/ry48p.atsp")
+problemy = [ft]
+for f in funkcje, prob in problemy
 
-# for f in funkcje, prob in problemy
-
-#     file = open("data/2/$(f)_$(prob.name)", "w")
-#     ref = get_optimal("$(prob.name)")[2]
-#     prd = PRD(prob, tabu_search(prob, two_opt, f), ref)
-#     write(file, "$(prob.name) $prd\n")
-#     println("$f")
-#     close(file)
-# end
+    file = open("data/2/$(f)_$(prob.name)", "w")
+    ref = get_optimal("$(prob.name)")[2]
+    prd = PRD(prob, tabu_search(prob, two_opt, f), ref)
+    write(file, "$(prob.name) $prd\n")
+    println("$f")
+    close(file)
+end
 # Drugie 
 # tabu_search(problem1, tabu_size = const)
 # tabu_search(problem2, tabu_size = const)
@@ -343,13 +344,13 @@ berlin = readTSP("TSP/berlin52.tsp")
 
 #Piąte
 #tabu_search(na każdym algorytmie)
-file = open("data/5/berlin.txt", "w")
+# file = open("data/5/berlin.txt", "w")
 
-prd = PRD(berlin, tabu_search(berlin, two_opt),7542.0)
-write(file, "two_opt $prd\n")
-prd = PRD(berlin, tabu_search(berlin, extended_neighbour),7542.0)
-write(file, "extended_neighbour $prd\n")
-prd = PRD(berlin, tabu_search(berlin, k_random,1),7542.0)
-write(file, "random $prd\n")
+# prd = PRD(berlin, tabu_search(berlin, two_opt),7542.0)
+# write(file, "two_opt $prd\n")
+# prd = PRD(berlin, tabu_search(berlin, extended_neighbour),7542.0)
+# write(file, "extended_neighbour $prd\n")
+# prd = PRD(berlin, tabu_search(berlin, k_random,1),7542.0)
+# write(file, "random $prd\n")
 
-close(file)
+# close(file)
