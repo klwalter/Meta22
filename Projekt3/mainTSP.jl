@@ -1,10 +1,12 @@
 include("heuristics.jl")
 include("utilities.jl")
+include("tabu.jl")
+include("genetic.jl")
 
 
-###########
-#  TESTS  #
-###########
+#####################
+# Algorithm testing #
+#####################
 
 function alg_test(tsp_data::TSP, algorithm::Function, objective::Function, reps::Int, aux_args...)
     println("\n================================================")
@@ -57,9 +59,9 @@ function alg_test(tsp_data::TSP, algorithm::Function, objective::Function, reps:
     end
 end
 
-##########
-#  MAIN  #
-##########
+########
+# MAIN #
+########
 
 function main()
     repetitions = 10

@@ -1,9 +1,9 @@
 using TSPLIB
 
 
-#########################
-# Wczytywanie instancji #
-#########################
+##########################
+# Load existing instance #
+##########################
 
 function load_tsp()
     println()
@@ -15,7 +15,7 @@ function load_tsp()
 end
 
 #########################
-# Generowanie instancji #
+# Generate new instance #
 #########################
 
 function random_instance(asymmetric::Bool, type::String, size::Number, seed::Number, range::Number, name::String)
@@ -85,10 +85,12 @@ function random_instance(asymmetric::Bool, type::String, size::Number, seed::Num
     write(file, "EOF\n\n")
     close(file)
     return tsp
+
 end
-################
-# Funkcja celu #
-################
+
+######################
+# Objective function #
+######################
 
 function objective_function(tsp_data::TSP, result::Vector{Int})
     distance_matrix = tsp_data.weights
@@ -102,14 +104,13 @@ function objective_function(tsp_data::TSP, result::Vector{Int})
     return sum
 end
 
-#######
-# PRD #
-#######
+########################
+# Get PRD of solution  #
+########################
 
 function PRD(tsp_data::TSP, x::Vector{Int}, f_ref::Float64)
     return 100*(objective_function(tsp_data, x) - f_ref)/f_ref
 end
-
 
 ################
 # LOAD OPTIMUS #
@@ -138,4 +139,24 @@ function get_optimal(variant::String)
     end
 
     return [found, dist]
+end
+
+##########
+# Invert #
+##########
+
+function invert(x, y, list)
+    inverted = copy(list)
+    inverted[x:y] = inverted[y:-1:x]
+    return inverted
+end
+
+########
+# Swap #
+########
+
+function swap(x, y, list)
+    swapped = copy(list)
+    swapped[x], swapped[y] = swapped[y], swapped[x]
+    return swapped
 end
