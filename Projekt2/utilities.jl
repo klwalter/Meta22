@@ -1,4 +1,6 @@
 using TSPLIB
+
+
 #########################
 # Wczytywanie instancji #
 #########################
@@ -16,9 +18,9 @@ end
 # Generowanie instancji #
 #########################
 
-function random_instance(type::String, size::Number, seed::Number, range::Number, name::String)
+function random_instance(asymmetric::Bool, type::String, size::Number, seed::Number, range::Number, name::String)
     rng = Random.MersenneTwister(seed)
-    points = convert(Array{Float64},rand(rng, 1:range, size, 2))
+    points = convert(Array{Float64}, rand(rng, 1:range, size, 2))
 
     file = open("TSP/" * name, "w") 
     napis = "NAME: $name\nTYPE: TSP\nCOMMENT: User-generated TSP file\nDIMENSION: $size\nEDGE_WEIGHT_TYPE: EUC_2D\nNODE_COORD_SECTION\n" 
@@ -38,15 +40,30 @@ function random_instance(type::String, size::Number, seed::Number, range::Number
         napis = "NAME: $name\nTYPE: TSP\nCOMMENT: User-generated TSP file\nDIMENSION: $size\nEDGE_WEIGHT_TYPE: FULL_MATRIX\nEDGE_WEIGHT_SECTION\n" 
 
         write(file,napis)
-        mat = tsp.weights
-        s = tsp.dimension
-
-        for i in 1:s
-            for j in 1:s
-                x = mat[i,j]
-                write(file, "$x ")
+    
+        if asymmetric
+            for i in 1:size
+                for j in 1:size
+                    if i == j
+                        j = 0.0
+                    else
+                        j = convert(Float64, rand(rng, 1:range))
+                    end
+                    write(file, "$j ")
+                end
+                write(file, "\n")
             end
-            write(file, "\n")
+        else
+            mat = tsp.weights
+            s = tsp.dimension
+
+            for i in 1:s
+                for j in 1:s
+                    x = mat[i,j]
+                    write(file, "$x ")
+                end
+                write(file, "\n")
+            end
         end
     elseif type == "LOWER_DIAG_ROW"
         file = open("TSP/" * name, "w")

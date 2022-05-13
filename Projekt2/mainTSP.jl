@@ -1,6 +1,6 @@
-include("heuritics.jl")
+include("heuristics.jl")
 include("utilities.jl")
-include("new_utils.jl")
+
 
 ###########
 #  TESTS  #

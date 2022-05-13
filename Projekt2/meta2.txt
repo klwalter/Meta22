@@ -1,6 +1,0 @@
-PRD(Długość listy tabu) dla ustalonego problemu
-PRD(Długość listy tabu) dla problemów o różnej wielkości
-Złożoność obliczeniowa, testy statystyczne
-Z pamięcią długoterminową vs bez
-Tabu vs 2opt
-Wpływ rozwiązania początkowego
