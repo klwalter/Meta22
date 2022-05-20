@@ -5,10 +5,10 @@ include("utilities.jl")
 include("tabu.jl")
 
 @kwdef mutable struct Human
-    solution::Vector{Int}
-    prd::Float64
-    age::Int
-    length::Float64
+    solution::Vector{Int} = []
+    prd::Float64 = 0.0
+    age::Int = 0
+    length::Float64 = 0.0
 end
 
 function new_human(tsp_data::TSP, start_algorithm::Function, _age::Int, _length::Float64, aux_args...)
