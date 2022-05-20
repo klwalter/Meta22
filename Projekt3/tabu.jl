@@ -116,7 +116,7 @@ function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
             if flag == true
                 prd = PRD(tsp_data, best_solution, optimum[2])
             end
-            println("Numer iteracji: $iteration_counter, długość: $best_dist, prd: $prd%") 
+            # println("Numer iteracji: $iteration_counter, długość: $best_dist, prd: $prd%") 
             push!(long_time_memory, [best_solution, tabu_queue, move_tabu])
         end
 
