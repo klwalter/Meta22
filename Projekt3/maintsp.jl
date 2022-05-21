@@ -3,12 +3,13 @@ include("utilities.jl")
 include("tabu.jl")
 include("genetic.jl")
 
+const REPETITIONS = 10
 
 #####################
 # Algorithm testing #
 #####################
 
-function alg_test(tsp_data::TSP, algorithm::Function, objective::Function, reps::Int, aux_args...)
+function alg_test(tsp_data::TSP, reps::Int, algorithm::Function, aux_args...)
     println("\n================================================")
     println()
     println("-----------------TESTING-----------------")
@@ -21,14 +22,13 @@ function alg_test(tsp_data::TSP, algorithm::Function, objective::Function, reps:
     println("\nProgress:")
 
 
-    best_path = []
-    best_dist = 0
-
-    pair = get_optimal(tsp_data.name)
+    best_path::Vector{Int} = []
+    best_dist::Float64 = 0
+    opt_pair::Tuple{Bool, Float64} = get_optimal(tsp_data.name)
 
     for i in 1:reps
-        final_path = algorithm(tsp_data, aux_args...)
-        obj_dist = objective(tsp_data, final_path)
+        final_path::Vector{Int} = algorithm(tsp_data, aux_args...)
+        obj_dist::Float64 = objective_function(tsp_data, final_path)
 
         if i == 1
             best_path = final_path
@@ -45,17 +45,16 @@ function alg_test(tsp_data::TSP, algorithm::Function, objective::Function, reps:
         end
     end
 
-
     println()
     println("-----------------RESULTS-----------------")
     println("Best path found: ", best_path)
     println("Best distance found: ", best_dist)
 
-    if pair[1] == true
-        optimal = pair[2]
-        println("PRD: ", PRD(tsp_data, best_path, optimal), "%")
+    if opt_pair[1] == true
+        optimal_dist::Float64 = opt_pair[2]
+        println("PRD: ", PRD(tsp_data, best_path, optimal_dist), "%")
     else
-        println("Opt tour file doesn't exist, can't obtain PRD!")
+        println("Optimal tour file doesn't exist, can't obtain PRD!")
     end
 end
 
@@ -64,11 +63,12 @@ end
 ########
 
 function main()
-    repetitions = 10
-    a = false
-    b, c, d, e, f = 0, 0, 0, 0, 0
-    exit_flag = false
-    local time = 0
+    exit_flag::Bool = false
+    asymmetric_flag = false
+    instance_type::String, instance_name::String = "", ""
+    nodes_count::Int, seed::Int, range::Int = 0, 0, 0
+    choice::Int = 0
+    time::Float64 = 0
 
     println()
     println("================================================")
@@ -80,46 +80,46 @@ function main()
     println("================================================")
 
     if choice == 1
-        tsp = load_tsp()
+        tsp::TSP = load_tsp()
     elseif choice == 2
         println()
         print("Please enter parameters for generator:\nAsymmetric format? (1 - true): ")
-        a = parse(Bool, readline())
+        asymmetric_flag = parse(Bool, readline())
 
-        if a != 1
+        if asymmetric_flag != 1
             print("Type of instance (FULL_MATRIX, LOWER_DIAG_ROW, EUC_2D): ")
-            b = convert(String, chomp(readline()))
+            instance_type = convert(String, chomp(readline()))
 
-            if b != "EUC_2D" && b != "FULL_MATRIX" && b != "LOWER_DIAG_ROW"
+            if instance_type != "EUC_2D" && instance_type != "FULL_MATRIX" && instance_type != "LOWER_DIAG_ROW"
                 println()
                 println("Please enter correct type of instance\n")
                 return
             end
         else
-            b = "FULL_MATRIX"
+            instance_type = "FULL_MATRIX"
         end
 
         print("Number of nodes: ")
-        c = parse(Int, readline())
+        nodes_count = parse(Int, readline())
 
         print("Seed for RNG: ")
-        d = parse(Int, readline())
+        seed = parse(Int, readline())
 
         print("Range of values (from 1 to X): ")
-        e = parse(Int, readline())
+        range = parse(Int, readline())
 
         print("Enter the name of the instance with extension: ")
-        f = convert(String, chomp(readline()))
+        instance_name = convert(String, chomp(readline()))
         
-        
-
-        tsp = random_instance(a, b, c, d, e, f)
+        tsp = random_instance(asymmetric_flag, instance_type, nodes_count, seed, range, instance_name)
     else
         println("\nPlease enter correct number\n")
         return -1
     end
 
     while exit_flag == false
+        aux_argument = 0
+
         println()
         println("================================================")
         println("Choose which algorithm you want to use:")
@@ -138,60 +138,58 @@ function main()
             println("\t+------------------------+")
 
             print("\nPlease enter the K-value: ")
-            a = parse(Int, readline())
+            aux_argument = parse(Int, readline())
 
-            time = @elapsed alg_test(tsp, k_random, objective_function, repetitions, a)
+            time = @elapsed alg_test(tsp, REPETITIONS, k_random, aux_argument)
         elseif choice == 2
             println("\t+---------------------------------+")
             println("\t|You have chosen Nearest neighbour|")
             println("\t+---------------------------------+")
 
             print("\nPlease enter the starting node: ")
-            a = parse(Int, readline())
+            aux_argument = parse(Int, readline())
 
-            time = @elapsed alg_test(tsp, nearest_neighbour, objective_function, 1, a)            
+            time = @elapsed alg_test(tsp, 1, nearest_neighbour, aux_argument)            
         elseif choice == 3
             println("\t+------------------------------------------+")
             println("\t|You have chosen Extended nearest neighbour|")
             println("\t+------------------------------------------+")
 
-            time = @elapsed alg_test(tsp, extended_neighbour, objective_function, 1)
+            time = @elapsed alg_test(tsp, 1, extended_neighbour)
         elseif choice == 4
             println("\t+---------------------+")
             println("\t|You have chosen 2-OPT|")    
             println("\t+---------------------+")
 
-            time = @elapsed alg_test(tsp, two_opt, objective_function, repetitions)
+            time = @elapsed alg_test(tsp, REPETITIONS, two_opt)
         elseif choice == 5
             println("\t+---------------------------+")
             println("\t|You have chosen Tabu search|")    
             println("\t+---------------------------+")
 
-            print("\n/ Choose starting solution algorithm for Tabu search:  \n")
+            print("\n/ Choose starting solution algorithm for Tabu search:\n")
             print("| 1. Random array\n| 2. K-random\n| 3. Extended nearest neighbour\n| 4. 2-OPT\n")
             print("\\ Your choice: ")
-            a = parse(Int, readline())
+            alg_choice = parse(Int, readline())
             
-            if a == 1
-                time = @elapsed alg_test(tsp, tabu_search, objective_function, repetitions, k_random, 1)
-            elseif a == 2
+            if alg_choice == 1
+                time = @elapsed alg_test(tsp, REPETITIONS, tabu_search, k_random, 1)
+            elseif alg_choice == 2
                 print("\nPlease enter the K-value: ")
-                b = parse(Int, readline())
-                time = @elapsed alg_test(tsp, tabu_search, objective_function, repetitions, k_random, b)
-            elseif a == 3
-                time = @elapsed alg_test(tsp, tabu_search, objective_function, 1, extended_neighbour)
-            elseif a == 4
-                time = @elapsed alg_test(tsp, tabu_search, objective_function, repetitions, two_opt)
+                aux_argument = parse(Int, readline())
+                time = @elapsed alg_test(tsp, REPETITIONS, tabu_search, k_random, aux_argument)
+            elseif alg_choice == 3
+                time = @elapsed alg_test(tsp, 1, tabu_search, extended_neighbour)
+            elseif alg_choice == 4
+                time = @elapsed alg_test(tsp, REPETITIONS, tabu_search, two_opt)
             end
-
         else
             println("Please enter correct number!\n")
         end
 
-
         println("Time elapsed: ", time, "s")
         println()
-    
+        
         choice = 0
         
         println("================================================")
@@ -208,7 +206,6 @@ function main()
             println("\n================================================\n")
             exit_flag = true
         end
-    
     end
 end
 

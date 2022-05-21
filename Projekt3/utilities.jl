@@ -5,11 +5,11 @@ using TSPLIB
 # Load existing instance #
 ##########################
 
-function load_tsp()
+function load_tsp()::TSP
     println()
     print("Enter the name of the instance with extension: ")
-    name = chomp(readline())
-    path = "TSP/" * name
+    name::String = chomp(readline())
+    path::String = "TSP/" * name
 
     return readTSP(path)
 end
@@ -18,7 +18,7 @@ end
 # Generate new instance #
 #########################
 
-function random_instance(asymmetric::Bool, type::String, size::Number, seed::Number, range::Number, name::String)
+function random_instance(asymmetric::Bool, type::String, size::Int, seed::Int, range::Int, name::String)
     rng = Random.MersenneTwister(seed)
     points = convert(Array{Float64}, rand(rng, 1:range, size, 2))
 
@@ -116,29 +116,34 @@ end
 # LOAD OPTIMUS #
 ################
 
-function get_optimal(variant::String)
-    path = "TSP/opt"
-    file = open(path, "r")
-    local dist = 0
-    local found = false
+function get_optimal(variant::String)::Tuple{Bool, Float64}
+    path::String = "TSP/opt"
+    file::IO = open(path, "r")
+    
+    dist::Float64 = 0
+    found::Bool = false
+
     for line in eachline(file)
+        i::Int = 1
+
         if line == "-1"
             break
         end
-        i = 1
+
         while line[i] != ':'
             i += 1
         end
-        name = line[1:i-1]
+
+        name::String = line[1:i-1]
         dist = parse(Float64,line[i+1: length(line)])
-        
+    
         if variant == name
             found = true
             break
         end
     end
 
-    return [found, dist]
+    return(found, dist)
 end
 
 ##########

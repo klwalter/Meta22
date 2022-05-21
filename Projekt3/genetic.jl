@@ -92,4 +92,4 @@ function fight_in_the_lockerroom(group::Vector{Human})
     return lord
 end
 
-simcity(readTSP("TSP/berlin52.tsp"))
+# simcity(readTSP("TSP/berlin52.tsp"))

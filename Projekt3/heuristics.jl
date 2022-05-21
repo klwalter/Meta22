@@ -6,16 +6,16 @@ using TSPLIB
 # K-random #
 ############
 
-function k_random(tsp_data::TSP, k::Number, aux_args...)
-    rng = Random.MersenneTwister()
-    vertices_number = tsp_data.dimension
-
-    solution = shuffle(rng, Vector(1:vertices_number))
-    distance = objective_function(tsp_data, solution)
+function k_random(tsp_data::TSP, k::Number, aux_args...)::Vector{Int}
+    rng::MersenneTwister = Random.MersenneTwister()
+    vertices_number::Int = tsp_data.dimension
+    
+    solution::Vector{Int} = shuffle(rng, Vector(1:vertices_number))
+    distance::Float64 = objective_function(tsp_data, solution)
 
     for i in 1:k
-        temp_solution = shuffle(rng, Vector(1:vertices_number))
-        temp_distance = objective_function(tsp_data, temp_solution)
+        temp_solution::Vector{Int} = shuffle(rng, Vector(1:vertices_number))
+        temp_distance::Float64 = objective_function(tsp_data, temp_solution)
 
         if distance > temp_distance
             distance = temp_distance
