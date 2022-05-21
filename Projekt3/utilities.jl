@@ -109,7 +109,7 @@ end
 ########################
 
 function PRD(tsp_data::TSP, x::Vector{Int}, f_ref::Float64)
-    return 100*(objective_function(tsp_data, x) - f_ref)/f_ref
+    return 100 * (objective_function(tsp_data, x) - f_ref)/f_ref
 end
 
 ################
