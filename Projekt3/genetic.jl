@@ -30,7 +30,36 @@ function simcity(tsp_data::TSP)
         println(algorithm)
         for j in 1:RACE_SIZE
             push!(starting_population, new_human(tsp_data, algorithm[1], 10, 10.0, algorithm[2], 1))
-            println("\nResident number $(((i - 1) * 10) + j): $(starting_population[((i - 1) * 10) + j])")
+            # println("\nResident number $(((i - 1) * 10) + j): $(starting_population[((i - 1) * 10) + j])")
+        end
+    end
+
+    elections(starting_population, 2)
+end
+
+function elections(group::Vector{Human}, groups_count::Int)
+    group_copy = copy(group)
+    group_length = length(group_copy)
+    groups = []
+    i = 0
+
+    shuffle!(group_copy)
+    group_size::Int = group_length / groups_count
+
+    
+    while i < group_size 
+        if (i + 1) * group_size > group_length
+            push!(groups, group_copy[((i * group_size) + 1):group_length])
+            break
+        end 
+        push!(groups, group_copy[(((i * group_size) + 1):((i + 1) * group_size))])
+        i += 1
+    end
+
+    for (i, group) in enumerate(groups)
+        println("\nGroup number $(i):")
+        for (j, resident) in enumerate(group)
+            println("Resident number $(j): $(getproperty(resident, :prd))")
         end
     end
 end
