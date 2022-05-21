@@ -64,10 +64,10 @@ end
 
 function main()
     exit_flag::Bool = false
-    asymmetric_flag = false
+    asymmetric_flag::Bool = false
     instance_type::String, instance_name::String = "", ""
     nodes_count::Int, seed::Int, range::Int = 0, 0, 0
-    choice::Int = 0
+    choice::Int, alg_choice::Int, aux_argument::Int = 0, 0, 0
     time::Float64 = 0
 
     println()
@@ -118,8 +118,6 @@ function main()
     end
 
     while exit_flag == false
-        aux_argument = 0
-
         println()
         println("================================================")
         println("Choose which algorithm you want to use:")
