@@ -9,7 +9,7 @@ const REPETITIONS = 10
 # Algorithm testing #
 #####################
 
-function alg_test(tsp_data::TSP, reps::Int, algorithm::Function, aux_args...)
+function alg_test(tsp_data::TSP, reps::Integer, algorithm::Function, aux_args...)
     println("\n================================================")
     println()
     println("-----------------TESTING-----------------")
@@ -23,7 +23,7 @@ function alg_test(tsp_data::TSP, reps::Int, algorithm::Function, aux_args...)
 
 
     best_path::Vector{Int} = []
-    best_dist::Float64 = 0
+    best_dist::Float64 = 0.0
     opt_pair::Tuple{Bool, Float64} = get_optimal(tsp_data.name)
 
     for i in 1:reps
@@ -63,11 +63,12 @@ end
 ########
 
 function main()
-    exit_flag::Bool = false
-    asymmetric_flag::Bool = false
+    exit_flag::Bool, asymmetric_flag::Bool = false, false
     instance_type::String, instance_name::String = "", ""
-    nodes_count::Int, seed::Int, range::Int = 0, 0, 0
-    choice::Int, alg_choice::Int, aux_argument::Int = 0, 0, 0
+    seed::Int64 = 0
+    nodes_count::Int32, range::Int32 = 0, 0
+    aux_argument::Int16 = 0
+    choice::Int8, alg_choice::Int8 = 0, 0
     time::Float64 = 0
 
     println()
@@ -111,6 +112,7 @@ function main()
         print("Enter the name of the instance with extension: ")
         instance_name = convert(String, chomp(readline()))
         
+        println("Types: $(typeof(nodes_count)) | $(typeof(seed)) | $(typeof(range)) | $(typeof(instance_name))")
         tsp = random_instance(asymmetric_flag, instance_type, nodes_count, seed, range, instance_name)
     else
         println("\nPlease enter correct number\n")
