@@ -9,37 +9,38 @@ using TimesDates
 # Tabu search #
 ###############
 
-function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
-    local tabu_queue = Queue{Vector{Int}}()
-    local long_time_memory = Stack{Vector}()
+function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)::Vector{Int}
+    tabu_queue = Queue{Vector{Int}}()
+    long_time_memory = Stack{Vector}()
 
-    local start = start_algotithm(tsp_data, aux_args...)
-    local current_solution = start                                      # Aktualny wierzchołek
-    local current_best_dist = -1                                        # objective_function tego wierzchołka / sąsiada
-    local best_solution = start                                         # najlepsze rozwiąnie
-    local best_dist = objective_function(tsp_data, start)               # objective_function tego wierzchołka
+    start::Vector{Int} = start_algotithm(tsp_data, aux_args...)
+    current_solution::Vector{Int} = start                                      # Aktualny wierzchołek
+    current_best_dist::Float64 = -1.0                                        # objective_function tego wierzchołka / sąsiada
+    best_solution::Vector{Int} = start                                         # najlepsze rozwiąnie
+    best_dist::Float64 = objective_function(tsp_data, start)               # objective_function tego wierzchołka
 
-    local size = tsp_data.dimension
-    local tabu_size = sqrt(size)
-    local move_tabu = []
-    local move
+    size::Int = tsp_data.dimension
+    tabu_size::Int = floor(sqrt(size))
+    move_tabu::Vector{Int} = []
+    move::Vector{Int} = []
 
     # Warunki stopu
-    local time_limit = Second(120)
-    local time_start = Dates.now()
-    local time_elapsed = Second(0)
-    local iteration_limit = size
-    local iteration_counter = 0
-
+    time_start::DateTime = Dates.now()
+    time_limit::Second = Second(120)
+    time_elapsed::Millisecond = Second(0)
+    iteration_limit::Int = size
+    iteration_counter::Int = 0
+    
     # Wykrywanie stagnacji
-    local stagnation_time_limit = Second(10)
-    local stagnation_time_start = Dates.now()
-    local stagnation_time_elapsed = Second(0)
+    stagnation_time_start::DateTime = Dates.now()
+    stagnation_time_limit::Second = Second(10)
+    stagnation_time_elapsed::Millisecond = Second(0)
 
     # Wypisywanie
-    local optimum = get_optimal(tsp_data.name)
-    local prd = "nie znaleziono optymalnej trasy"
-    local flag = optimum[1]
+    optimum::Tuple{Bool, Float64} = get_optimal(tsp_data.name)
+    prd::Float64 = 0.0
+    flag::Bool = optimum[1]
+
     if flag == true
         prd = PRD(tsp_data, best_solution, optimum[2])
     end
@@ -48,6 +49,7 @@ function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
         iteration_counter += 1
         current_best_dist = -1                                          # nie wybraliśmy sąsiada
         move = [0,0]
+
         for i in 2:size-1, j in i+1:size                             # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
 
             time_elapsed = Dates.now() - time_start
@@ -70,11 +72,11 @@ function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
                 move = [0,0]
                 break
             end
-            new_solution = invert(i, j, current_solution)
-            new_solution_dist = objective_function(tsp_data, new_solution)
+            new_solution::Vector{Int} = invert(i, j, current_solution)
+            new_solution_dist::Float64 = objective_function(tsp_data, new_solution)
 
             # sprawdzamy czy jest na liście tabu
-            not_in_tabu_queue = true
+            not_in_tabu_queue::Bool = true
             for inv in tabu_queue
                 if inv == [i,j] || inv == [j,i]
                     not_in_tabu_queue = false
@@ -83,8 +85,7 @@ function tabu_search(tsp_data::TSP, start_algotithm::Function, aux_args...)
             end
 
             # sprawdzamy czy jest na liście obecnego rozwiąnia
-
-            not_in_move_tabu = true
+            not_in_move_tabu::Bool = true
             for inv in move_tabu
                 if inv == [i,j] || inv == [j,i]
                     not_in_move_tabu = false

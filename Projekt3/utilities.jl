@@ -34,6 +34,8 @@ function random_instance(asymmetric::Bool, type::String, size::Integer, seed::In
     close(file)
     
     tsp::TSP = readTSP("TSP/" * name)
+    mat::Matrix{Float64} = tsp.weights
+    s::Int = tsp.dimension
     
     if type == "FULL_MATRIX"
         file = open("TSP/" * name, "w")
@@ -54,9 +56,6 @@ function random_instance(asymmetric::Bool, type::String, size::Integer, seed::In
                 write(file, "\n")
             end
         else
-            mat::Matrix{Float64} = tsp.weights
-            s::Int = tsp.dimension
-
             for i in 1:s
                 for j in 1:s
                     x = mat[i,j]
@@ -70,8 +69,6 @@ function random_instance(asymmetric::Bool, type::String, size::Integer, seed::In
         header = "NAME: $name\nTYPE: TSP\nCOMMENT: User-generated TSP file\nDIMENSION: $size\nEDGE_WEIGHT_TYPE: LOWER_DIAG_ROW\nEDGE_WEIGHT_SECTION\n" 
 
         write(file,header)
-        mat::Matrix{Float64} = tsp.weights
-        s::Int = tsp.dimension
 
         for i in 1:s
             for j in 1:i

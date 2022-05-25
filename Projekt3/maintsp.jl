@@ -65,9 +65,8 @@ end
 function main()
     exit_flag::Bool, asymmetric_flag::Bool = false, false
     instance_type::String, instance_name::String = "", ""
-    seed::Int64 = 0
-    nodes_count::Int32, range::Int32 = 0, 0
-    aux_argument::Int16 = 0
+    seed::Int, nodes_count::Int, range::Int = 0, 0, 0
+    aux_argument::Int = 0
     choice::Int8, alg_choice::Int8 = 0, 0
     time::Float64 = 0
 
@@ -112,7 +111,6 @@ function main()
         print("Enter the name of the instance with extension: ")
         instance_name = convert(String, chomp(readline()))
         
-        println("Types: $(typeof(nodes_count)) | $(typeof(seed)) | $(typeof(range)) | $(typeof(instance_name))")
         tsp = random_instance(asymmetric_flag, instance_type, nodes_count, seed, range, instance_name)
     else
         println("\nPlease enter correct number\n")

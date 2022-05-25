@@ -6,7 +6,7 @@ using TSPLIB
 # K-random #
 ############
 
-function k_random(tsp_data::TSP, k::Number, aux_args...)::Vector{Int}
+function k_random(tsp_data::TSP, k::Int, aux_args...)::Vector{Int}
     rng::MersenneTwister = Random.MersenneTwister()
     vertices_number::Int = tsp_data.dimension
     
@@ -30,18 +30,20 @@ end
 # Nearest neighbour #
 #####################
 
-function nearest_neighbour(tsp_data::TSP, starting_point::Number)
-    size = tsp_data.dimension
-    solution = zeros(Int, size)
+function nearest_neighbour(tsp_data::TSP, starting_point::Int)::Vector{Int}
+    size::Int = tsp_data.dimension
+    temp_node::Int = 0
+    temp_distance::Float64 = 0.0 
+    
+    solution::Vector{Int} = zeros(Int, size)
     solution[1] = starting_point
-    local temp_node
-    local temp_distance
 
-    status = ones(Int, size)
+    status::Vector{Int} = ones(Int, size)
     status[starting_point] = 0
 
-    distance_matrix = tsp_data.weights
-    nodes_done = 1
+    distance_matrix::Matrix{Float64} = tsp_data.weights
+    nodes_done::Int = 1
+
 
     while nodes_done < size # lecimy tak długo, aż nie zostanie nam 1 wierzchołek
         for i in 1:size # interujemy po wszystkich wierzchołkach
@@ -53,13 +55,15 @@ function nearest_neighbour(tsp_data::TSP, starting_point::Number)
         end
         for i in temp_node+1:size
             if status[i] == 1 # kolejny nieodwiedzony wierzchołek
-                new_distance = distance_matrix[solution[nodes_done], i] # sprawdzamy odległość do nowego wierzchołka 
+                new_distance::Float64 = distance_matrix[solution[nodes_done], i] # sprawdzamy odległość do nowego wierzchołka 
+                
                 if temp_distance > new_distance # Jeżeli kolejny wierchołek jest bliżej to zmieniamy
                     temp_node = i
                     temp_distance = new_distance
                 end
             end
         end
+        
         nodes_done += 1
         solution[nodes_done] = temp_node
         status[temp_node] = 0
@@ -72,12 +76,12 @@ end
 # Extended nearest neighbour #
 ##############################
 
-function extended_neighbour(tsp_data::TSP)
-    size = tsp_data.dimension
-    solution = nearest_neighbour(tsp_data, 1)
+function extended_neighbour(tsp_data::TSP)::Vector{Int}
+    size::Int = tsp_data.dimension
+    solution::Vector{Int} = nearest_neighbour(tsp_data, 1)
 
     for i in 2:size 
-        temp = nearest_neighbour(tsp_data, i)
+        temp::Vector{Int} = nearest_neighbour(tsp_data, i)
 
         if objective_function(tsp_data, solution) > objective_function(tsp_data, temp)
             solution = temp
@@ -91,21 +95,22 @@ end
 # 2-OPT #
 #########
 
-function two_opt(tsp_data::TSP, aux_args...)
-    rng = Random.MersenneTwister()
-    size = tsp_data.dimension
-    local solution = shuffle(rng, Vector(1:size))   # Wybieramy losowe rozwiąnie początkowe
+function two_opt(tsp_data::TSP, aux_args...)::Vector{Int}
+    rng::MersenneTwister = Random.MersenneTwister()
+    size::Int = tsp_data.dimension
+    solution::Vector{Int} = shuffle(rng, Vector(1:size))   # Wybieramy losowe rozwiąnie początkowe
 
-    local improved_flag = true
-    local current_new_solution = solution            # current_solution to kandydat na lepsze rozwiązanie
-    local best_dist = objective_function(tsp_data, solution)
+    improved_flag::Bool = true
+    current_new_solution::Vector{Int}  = solution            # current_solution to kandydat na lepsze rozwiązanie
+    best_dist::Float64 = objective_function(tsp_data, solution)
+
     while improved_flag == true
         improved_flag = false
 
         for i in 2:size-1                            # W tych dwóch pętlach sprawdzamy wszystkich sąsiadów obecnego rozwiązania
             for j in i+1:size
-                new_solution = invert(i, j, solution)
-                current_dist = objective_function(tsp_data, new_solution)
+                new_solution::Vector{Int} = invert(i, j, solution)
+                current_dist::Float64 = objective_function(tsp_data, new_solution)
     
                 if current_dist < best_dist
                     best_dist = current_dist
