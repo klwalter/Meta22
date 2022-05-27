@@ -9,7 +9,7 @@ const REPETITIONS = 10
 # Algorithm testing #
 #####################
 
-function alg_test(tsp_data::TSP, reps::Int, algorithm::Function, aux_args...)
+function alg_test(tsp_data::TSP, reps::Integer, algorithm::Function, aux_args...)
     println("\n================================================")
     println()
     println("-----------------TESTING-----------------")
@@ -23,7 +23,7 @@ function alg_test(tsp_data::TSP, reps::Int, algorithm::Function, aux_args...)
 
 
     best_path::Vector{Int} = []
-    best_dist::Float64 = 0
+    best_dist::Float64 = 0.0
     opt_pair::Tuple{Bool, Float64} = get_optimal(tsp_data.name)
 
     for i in 1:reps
@@ -63,11 +63,11 @@ end
 ########
 
 function main()
-    exit_flag::Bool = false
-    asymmetric_flag::Bool = false
+    exit_flag::Bool, asymmetric_flag::Bool = false, false
     instance_type::String, instance_name::String = "", ""
-    nodes_count::Int, seed::Int, range::Int = 0, 0, 0
-    choice::Int, alg_choice::Int, aux_argument::Int = 0, 0, 0
+    seed::Int, nodes_count::Int, range::Int = 0, 0, 0
+    aux_argument::Int = 0
+    choice::Int8, alg_choice::Int8 = 0, 0
     time::Float64 = 0
 
     println()
