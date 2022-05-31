@@ -101,7 +101,7 @@ function crossing_one(father1::Vector{Int}, father2::Vector{Int})
     found::Vector{Int} = zeros(Int, size)
     i::Int = 1
     j::Int = 1
-    while i < half_size
+    while i <= half_size
         sprout[i] = father1[i]
         found[father1[i]] = 1
         i += 1
@@ -124,4 +124,6 @@ function crossing_one(father1::Vector{Int}, father2::Vector{Int})
     end
     return sprout
 end
+
+println(crossing_one([1,2,3,4,5,6,7,8,9,10], shuffle!([1,2,3,4,5,6,7,8,9,10])))
 # simcity(readTSP("TSP/berlin52.tsp"))
