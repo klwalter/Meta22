@@ -1,5 +1,6 @@
 import Base.@kwdef
 using TSPLIB
+using Random
 include("heuristics.jl")
 include("utilities.jl")
 include("tabu.jl")
@@ -10,17 +11,16 @@ const LADDER_SIZE = 8
 @kwdef mutable struct Human
     name::String = ""
     solution::Vector{Int} = []
-    prd::Float64 = 0.0
+    objective::Float64 = 0.0
     age::Int = 0
     length::Float64 = 0.0
 end
 
 function new_human(tsp_data::TSP, start_algorithm::Function, _name::String, _age::Int, _length::Float64, aux_args...)
     _solution::Vector{Int} = start_algorithm(tsp_data, aux_args...)
-    _solution_optimal::Vector{Float64} = get_optimal(tsp_data.name)
-    _prd::Float64 = PRD(tsp_data, _solution, _solution_optimal[2])
+    _objective::Float64 = objective_function(tsp_data,_solution)
 
-    return Human(name = _name, solution = _solution, prd = _prd, age = _age, length = _length)
+    return Human(name = _name, solution = _solution, objective = _objective, age = _age, length = _length)
 end
 
 function simcity(tsp_data::TSP)
@@ -47,7 +47,7 @@ function simcity(tsp_data::TSP)
     println("\t\t   | Lords of the lockerrooms |")
     println("\t\t   +--------------------------+\n")
     for (i, lord) in enumerate(lords)
-        println("|--> Lord number $(i):\t[Name: $(lord.name) || PRD: $(lord.prd)]")
+        println("|--> Lord number $(i):\t[Name: $(lord.name) || Length: $(lord.objective)]")
     end
 end
 
@@ -71,7 +71,7 @@ function elections(group::Vector{Human}, subgroups_size::Int)
     for (i, subgroup) in enumerate(subgroups)
         println("\n>> Group number $(i) <<")
         for (j, resident) in enumerate(subgroup)
-            println("|--> Jabroni number $(j):\t[Name: $(resident.name) || PRD: $(resident.prd)]")
+            println("|--> Jabroni number $(j):\t[Name: $(resident.name) || Length: $(resident.objective)]")
         end
     end
 
@@ -92,4 +92,35 @@ function fight_in_the_lockerroom(group::Vector{Human})
     return lord
 end
 
+function crossing_one(father1::Vector{Int}, father2::Vector{Int})
+    #kids::Vector{Vector{Int}} = []
+    size::Int = length(father1)
+    half_size::Int = div(size,2)
+    probability = rand(MersenneTwister())
+    sprout::Vector{Int} = zeros(Int, size)
+    found::Vector{Int} = zeros(Int, size)
+    i::Int = 1
+    j::Int = 1
+    while i < half_size
+        sprout[i] = father1[i]
+        found[father1[i]] = 1
+        i += 1
+    end
+    j = i
+    while i <= size
+        while found[father2[j]] != 0
+            j += 1
+            if j == size
+                j = 1
+            end
+        end
+        sprout[i] = father2[j]
+        found[father2[j]] = 1
+        j += 1
+        if j == size
+            j = 1
+        end
+        i += 1
+    end
+end
 # simcity(readTSP("TSP/berlin52.tsp"))
