@@ -8,47 +8,86 @@ include("tabu.jl")
 const RACE_SIZE = 10
 const LADDER_SIZE = 8
 
+###################
+# Human structure #
+###################
+
 @kwdef mutable struct Human
-    name::String = ""
     solution::Vector{Int} = []
     objective::Float64 = 0.0
     age::Int = 0
-    length::Float64 = 0.0
 end
 
-function new_human(tsp_data::TSP, start_algorithm::Function, _name::String, _age::Int, _length::Float64, aux_args...)
+function new_human(tsp_data::TSP, start_algorithm::Function, _age::Int, aux_args...)
     _solution::Vector{Int} = start_algorithm(tsp_data, aux_args...)
     _objective::Float64 = objective_function(tsp_data,_solution)
 
-    return Human(name = _name, solution = _solution, objective = _objective, age = _age, length = _length)
+    return Human(solution = _solution, objective = _objective, age = _age)
 end
 
+##############
+# Simulation #
+##############
+
 function simcity(tsp_data::TSP)
-    starting_population::Vector{Human} = []
-    algorithms::Vector{Tuple{Function, Any}} = [(k_random, 1), (two_opt, 0), (tabu_search, k_random)]
     ladders::Vector{Vector{Human}} = []
     lords::Vector{Human} = []
+    generation::Vector{Human} = []
+    counter::Int = 1
+    j::Int = 1
+
+    generation = spawn_jabronis(tsp_data)
+    while counter < 10
+        size::Int = 0
+        ladders = elections(generation, LADDER_SIZE)
+    
+        for subgroup in ladders
+            lord = fight_in_the_lockerroom(subgroup)
+            push!(lords, lord)
+        end
+        size = length(lords)
+        while j < size
+            kids::Vector{Vector{Int}} = breeding_chambers(lords[j].solution, lords[j+1].solution, crossing_one)
+            for kid in kids
+                temp_human = Human()
+                temp_human.solution = kid
+                temp_human.objective = objective_function(tsp_data, kid)
+                push!(generation, temp_human)
+            end
+            j += 2
+        end
+        for aniki in generation 
+            aniki.age += 1
+        end
+        generation = filter!(x -> x.age < 5, generation)
+        counter += 1
+    end
+    
+    
+    # println("\n\t\t   +--------------------------+")
+    # println("\t\t   | Lords of the lockerrooms |")
+    # println("\t\t   +--------------------------+\n")
+    # for (i, lord) in enumerate(lords)
+    #     println("|--> Lord number $(i):\t[Name: $(lord.name) || Length: $(lord.objective)]")
+    # end
+end
+
+#########################
+# Generating Population #
+#########################
+
+function spawn_jabronis(tsp_data::TSP)
+    population::Vector{Human} = []
+    algorithms::Vector{Tuple{Function, Any}} = [(k_random, 1), (two_opt, 0), (tabu_search, k_random)]
 
     for (i, algorithm) in enumerate(algorithms)
         println(algorithm)
         for j in 1:RACE_SIZE
-            push!(starting_population, new_human(tsp_data, algorithm[1], "$(algorithm[1])$(j)", 10, 21.37, algorithm[2], 1))
+            push!(population, new_human(tsp_data, algorithm[1], 10, algorithm[2], 1))
         end
     end
-
-    ladders = elections(starting_population, LADDER_SIZE)
-
-    for subgroup in ladders
-        lord = fight_in_the_lockerroom(subgroup)
-        push!(lords, lord)
-    end
-
-    println("\n\t\t   +--------------------------+")
-    println("\t\t   | Lords of the lockerrooms |")
-    println("\t\t   +--------------------------+\n")
-    for (i, lord) in enumerate(lords)
-        println("|--> Lord number $(i):\t[Name: $(lord.name) || Length: $(lord.objective)]")
-    end
+    
+    return population
 end
 
 #############################
@@ -72,12 +111,12 @@ function elections(group::Vector{Human}, subgroups_size::Int)
         push!(subgroups, slice)
     end
 
-    for (i, subgroup) in enumerate(subgroups)
-        println("\n>> Group number $(i) <<")
-        for (j, resident) in enumerate(subgroup)
-            println("|--> Jabroni number $(j):\t[Name: $(resident.name) || Length: $(resident.objective)]")
-        end
-    end
+    # for (i, subgroup) in enumerate(subgroups)
+    #     println("\n>> Group number $(i) <<")
+    #     for (j, resident) in enumerate(subgroup)
+    #         println("|--> Jabroni number $(j):\t[Name: $(resident.name) || Length: $(resident.objective)]")
+    #     end
+    # end
 
     return subgroups
 end
@@ -88,11 +127,11 @@ end
 
 function fight_in_the_lockerroom(group::Vector{Human})
     lord::Human = group[1]
-    best::Float64 = lord.prd
+    best::Float64 = lord.objective
 
     for resident in group
-        if resident.prd < best
-            best = resident.prd
+        if resident.objective < best
+            best = resident.objective
             lord = resident
         end
     end
@@ -119,17 +158,17 @@ function crossing_one(father1::Vector{Int}, father2::Vector{Int})
     j = i
     while i <= size
         while found[father2[j]] != 0
-            j += 1
             if j == size
-                j = 1
+                j = 0
             end
+            j += 1
         end
         sprout[i] = father2[j]
         found[father2[j]] = 1
-        j += 1
         if j == size
-            j = 1
+            j = 0
         end
+        j += 1
         i += 1
     end
     return sprout
@@ -146,23 +185,23 @@ function breeding_chambers(father1::Vector{Int}, father2::Vector{Int}, crossing_
     if probability2 < 0.2
         mutation!(sprout2)
     end
-    append!(kids, sprout1)
-    append!(kids, sprout2)
+    push!(kids, sprout1)
+    push!(kids, sprout2)
     return kids
 end
 
 function mutation!(sprout::Vector{Int})
     size::Int = length(sprout)
-    i::Int = 0
-    j::Int = 0
-    while i != j
+    i::Int = 1
+    j::Int = 1
+    while i == j
         i, j = rand(1:size,2)
     end
     sprout[:] = swap(i, j, sprout)
 end
 
 # println(crossing_one([1,2,3,4,5,6,7,8,9,10], shuffle!([1,2,3,4,5,6,7,8,9,10])))
-# simcity(readTSP("TSP/berlin52.tsp"))
+simcity(readTSP("TSP/berlin52.tsp"))
 # function test()
 #     a = [5,4,3,2,1]
 #     test2(a)
