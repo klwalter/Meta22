@@ -51,6 +51,10 @@ function simcity(tsp_data::TSP)
     end
 end
 
+#############################
+# Divide into random groups #
+#############################
+
 function elections(group::Vector{Human}, subgroups_size::Int)
     group_copy::Vector{Human} = copy(group)
     group_length::Int = length(group_copy)
@@ -78,6 +82,10 @@ function elections(group::Vector{Human}, subgroups_size::Int)
     return subgroups
 end
 
+##################################
+# Wiadomo, nie trzeba komentarza #
+##################################
+
 function fight_in_the_lockerroom(group::Vector{Human})
     lord::Human = group[1]
     best::Float64 = lord.prd
@@ -92,11 +100,13 @@ function fight_in_the_lockerroom(group::Vector{Human})
     return lord
 end
 
+###################
+# Order Crossover #
+###################
+
 function crossing_one(father1::Vector{Int}, father2::Vector{Int})
-    #kids::Vector{Vector{Int}} = []
     size::Int = length(father1)
     half_size::Int = div(size,2)
-    probability = rand(MersenneTwister())
     sprout::Vector{Int} = zeros(Int, size)
     found::Vector{Int} = zeros(Int, size)
     i::Int = 1
@@ -125,5 +135,40 @@ function crossing_one(father1::Vector{Int}, father2::Vector{Int})
     return sprout
 end
 
-println(crossing_one([1,2,3,4,5,6,7,8,9,10], shuffle!([1,2,3,4,5,6,7,8,9,10])))
+function breeding_chambers(father1::Vector{Int}, father2::Vector{Int}, crossing_algorithm::Function)
+    kids::Vector{Vector{Int}} = []
+    probability1::Float64, probability2::Float64 = rand(MersenneTwister(),2)
+    sprout1 = crossing_algorithm(father1, father2)
+    sprout2 = crossing_algorithm(father2, father1)
+    if probability1 < 0.2
+        mutation!(sprout1)
+    end
+    if probability2 < 0.2
+        mutation!(sprout2)
+    end
+    append!(kids, sprout1)
+    append!(kids, sprout2)
+    return kids
+end
+
+function mutation!(sprout::Vector{Int})
+    size::Int = length(sprout)
+    i::Int = 0
+    j::Int = 0
+    while i != j
+        i, j = rand(1:size,2)
+    end
+    sprout[:] = swap(i, j, sprout)
+end
+
+# println(crossing_one([1,2,3,4,5,6,7,8,9,10], shuffle!([1,2,3,4,5,6,7,8,9,10])))
 # simcity(readTSP("TSP/berlin52.tsp"))
+# function test()
+#     a = [5,4,3,2,1]
+#     test2(a)
+#     println(a)
+# end
+# function test2(x)
+#     x = swap(1,3,x)
+# end
+# test()
