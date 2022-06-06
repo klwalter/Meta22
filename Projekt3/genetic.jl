@@ -38,15 +38,29 @@ function simcity(tsp_data::TSP)
     best_dist::Float64 = objective_function(tsp_data, best_solution)
     counter::Int = 1
     opt::Tuple{Bool, Float64} = get_optimal(tsp_data.name)
+    group_size::Int = floor(sqrt(tsp_data.dimension)) * 10
+    population_size::Int = group_size * group_size
+
     ###################
     # Stop conditions #
     ###################
 
     time_start::DateTime = Dates.now()
-    time_limit::Second = Second(120)
+    time_limit::Second = Second(300)
     time_elapsed::Millisecond = Second(0)
 
-    generation = spawn_jabronis(tsp_data)
+    ########################
+    # Detecting Stagnation #
+    ########################
+
+    stagnation_time_start::DateTime = Dates.now()
+    stagnation_time_limit::Second = Second(10)
+    stagnation_time_elapsed::Millisecond = Second(0)
+
+    generation = spawn_jabronis(tsp_data, population_size)
+    # gensize::Int= length(generation)
+    # println("Size of generation: $gensize")
+
     ######################################
     # Find best from starting population #
     ######################################
@@ -58,10 +72,17 @@ function simcity(tsp_data::TSP)
         end
     end
 
+    if opt[1] == true
+        prd::Float64 = PRD(tsp_data, best_solution, opt[2])                        
+        println("Generation number: $counter, solution: $best_solution, distance: $best_dist, prd: $prd%")
+    else
+        println("Generation number: $counter, solution: $best_solution, distance: $best_dist")
+    end
+
     #############
     # Main loop #
     #############
-
+    println("START!")
     while true
         counter += 1
         lords = []
@@ -70,18 +91,18 @@ function simcity(tsp_data::TSP)
             return best_solution
         end
         size::Int = 0
-        ladders = elections(generation, LADDER_SIZE)
+        ladders = elections(generation, group_size)
     
         for subgroup in ladders
             lord = fight_in_the_lockerroom(subgroup)
             push!(lords, lord)
         end
-        gensize::Int= length(generation)
-        println("Size of generation: $gensize")
+        # gensize::Int= length(generation)
+        # println("Size of generation: $gensize")
         generation = []
         size = length(lords)
         j::Int = 1
-        println("Number of lords: $size")
+        # println("Number of lords: $size")
         # while j < size
         #     kids::Vector{Vector{Int}} = breeding_chambers(lords[j].solution, lords[j+1].solution, crossing_one)
         #     time_elapsed = Dates.now() - time_start
@@ -113,11 +134,12 @@ function simcity(tsp_data::TSP)
             kids = [kids; breeding_chambers(lords[a].solution, lords[b].solution, crossing_one)]
             time_elapsed = Dates.now() - time_start
             if time_elapsed > time_limit
+                println("Last generation: $counter")
                 return best_solution
             end
         end
-        kidsize::Int = sizeof(kids)
-        println("Number of kids: $kidsize")
+        # kidsize::Int = length(kids)
+        # println("Number of kids: $kidsize")
         for kid in kids
             temp_human = Human()
             temp_human.solution = kid
@@ -131,7 +153,7 @@ function simcity(tsp_data::TSP)
                 best_solution = temp_human.solution
 
                 if opt[1] == true
-                    prd::Float64 = PRD(tsp_data, best_solution, opt[2])                        
+                    prd = PRD(tsp_data, best_solution, opt[2])                        
                     println("Generation number: $counter, solution: $best_solution, distance: $best_dist, prd: $prd%")
                 else
                     println("Generation number: $counter, solution: $best_solution, distance: $best_dist")
@@ -147,7 +169,6 @@ function simcity(tsp_data::TSP)
         # generation = filter!(x -> x.age < 5, generation)
     end
     
-    return best_solution
     # println("\n\t\t   +--------------------------+")
     # println("\t\t   | Lords of the lockerrooms |")
     # println("\t\t   +--------------------------+\n")
@@ -160,17 +181,18 @@ end
 # Generating Population #
 #########################
 
-function spawn_jabronis(tsp_data::TSP)
+function spawn_jabronis(tsp_data::TSP, population_size::Int)
     population::Vector{Human} = []
     # algorithms::Vector{Tuple{Function, Any}} = [(k_random, 1), (two_opt, 0), (tabu_search, k_random)]
     algorithms::Vector{Tuple{Function, Any}} = [(k_random, 1)]
     for (i, algorithm) in enumerate(algorithms)
         println(algorithm)
-        for j in 1:RACE_SIZE
+        for j in 1:population_size
             push!(population, new_human(tsp_data, algorithm[1], algorithm[2], 1))
         end
     end
-    
+    # pop!(population)
+    # push!(population, new_human(tsp_data, two_opt, 0, 1))
     return population
 end
 
@@ -263,10 +285,10 @@ function breeding_chambers(father1::Vector{Int}, father2::Vector{Int}, crossing_
     probability1::Float64, probability2::Float64 = rand(MersenneTwister(),2)
     sprout1 = crossing_algorithm(father1, father2)
     sprout2 = crossing_algorithm(father2, father1)
-    if probability1 < 0.2
+    if probability1 < 0.005
         mutation!(sprout1)
     end
-    if probability2 < 0.2
+    if probability2 < 0.005
         mutation!(sprout2)
     end
     push!(kids, sprout1)
@@ -281,14 +303,12 @@ function mutation!(sprout::Vector{Int})
     while i == j
         i, j = rand(1:size,2)
     end
-    sprout[:] = swap(i, j, sprout)
+    sprout[:] = invert(i, j, sprout)
 end
 
 # println(crossing_one([1,2,3,4,5,6,7,8,9,10], shuffle!([1,2,3,4,5,6,7,8,9,10])))
 tsp = readTSP("TSP/berlin52.tsp")
-sol = simcity(tsp)
-dis = objective_function(tsp,sol)
-println("$sol, $dis")
+simcity(tsp)
 function test()
     a::Vector{Int} = 1:10
     b::Vector{Int} = 11:16
