@@ -6,7 +6,7 @@ include("heuristics.jl")
 include("utilities.jl")
 include("tabu.jl")
 
-const RACE_SIZE = 10
+const RACE_SIZE = 64
 const LADDER_SIZE = 8
 
 ###################
@@ -16,14 +16,14 @@ const LADDER_SIZE = 8
 @kwdef mutable struct Human
     solution::Vector{Int} = []
     objective::Float64 = 0.0
-    age::Int = 0
+    # age::Int = 0
 end
 
-function new_human(tsp_data::TSP, start_algorithm::Function, _age::Int, aux_args...)
+function new_human(tsp_data::TSP, start_algorithm::Function, aux_args...)
     _solution::Vector{Int} = start_algorithm(tsp_data, aux_args...)
     _objective::Float64 = objective_function(tsp_data,_solution)
 
-    return Human(solution = _solution, objective = _objective, age = _age)
+    return Human(solution = _solution, objective = _objective)
 end
 
 ##############
@@ -47,7 +47,6 @@ function simcity(tsp_data::TSP)
     time_elapsed::Millisecond = Second(0)
 
     generation = spawn_jabronis(tsp_data)
-
     ######################################
     # Find best from starting population #
     ######################################
@@ -64,6 +63,8 @@ function simcity(tsp_data::TSP)
     #############
 
     while true
+        counter += 1
+        lords = []
         time_elapsed = Dates.now() - time_start
         if time_elapsed > time_limit
             return best_solution
@@ -75,39 +76,75 @@ function simcity(tsp_data::TSP)
             lord = fight_in_the_lockerroom(subgroup)
             push!(lords, lord)
         end
-
+        gensize::Int= length(generation)
+        println("Size of generation: $gensize")
+        generation = []
         size = length(lords)
         j::Int = 1
-        while j < size
-            kids::Vector{Vector{Int}} = breeding_chambers(lords[j].solution, lords[j+1].solution, crossing_one)
+        println("Number of lords: $size")
+        # while j < size
+        #     kids::Vector{Vector{Int}} = breeding_chambers(lords[j].solution, lords[j+1].solution, crossing_one)
+        #     time_elapsed = Dates.now() - time_start
+        #     if time_elapsed > time_limit
+        #         return best_solution
+        #     end
+        #     for kid in kids
+        #         temp_human = Human()
+        #         temp_human.solution = kid
+        #         temp_human.objective = objective_function(tsp_data, kid)
+        #         if temp_human.objective < best_dist
+        #             best_dist = temp_human.objective
+        #             best_solution = temp_human.solution
+
+        #             if opt[1] == true
+        #                 prd::Float64 = PRD(tsp_data, best_solution, opt[2])                        
+        #                 println("Generation number: $counter, solution: $best_solution, distance: $best_dist, prd: $prd%")
+        #             else
+        #                 println("Generation number: $counter, solution: $best_solution, distance: $best_dist")
+        #             end 
+        #         end
+        #         push!(generation, temp_human)
+        #     end
+        #     j += 2
+        # end
+
+        kids::Vector{Vector{Int}} = []
+        for a in 1:size-1, b in a+1:size
+            kids = [kids; breeding_chambers(lords[a].solution, lords[b].solution, crossing_one)]
             time_elapsed = Dates.now() - time_start
             if time_elapsed > time_limit
                 return best_solution
             end
-            for kid in kids
-                temp_human = Human()
-                temp_human.solution = kid
-                temp_human.objective = objective_function(tsp_data, kid)
-                if temp_human.objective < best_dist
-                    best_dist = temp_human.objective
-                    best_solution = temp_human.solution
-
-                    if opt[1] == true
-                        prd::Float64 = PRD(tsp_data, best_solution, opt[2])                        
-                        println("Generation number: $counter, solution: $best_solution, distance: $best_dist, prd: $prd%")
-                    else
-                        println("Generation number: $counter, solution: $best_solution, distance: $best_dist")
-                    end 
-                end
-                push!(generation, temp_human)
+        end
+        kidsize::Int = sizeof(kids)
+        println("Number of kids: $kidsize")
+        for kid in kids
+            temp_human = Human()
+            temp_human.solution = kid
+            temp_human.objective = objective_function(tsp_data, kid)
+            time_elapsed = Dates.now() - time_start
+            if time_elapsed > time_limit
+                return best_solution
             end
-            j += 2
+            if temp_human.objective < best_dist
+                best_dist = temp_human.objective
+                best_solution = temp_human.solution
+
+                if opt[1] == true
+                    prd::Float64 = PRD(tsp_data, best_solution, opt[2])                        
+                    println("Generation number: $counter, solution: $best_solution, distance: $best_dist, prd: $prd%")
+                else
+                    println("Generation number: $counter, solution: $best_solution, distance: $best_dist")
+                end 
+            end
+            push!(generation, temp_human)
         end
-        for aniki in generation 
-            aniki.age += 1
-        end
-        generation = filter!(x -> x.age < 5, generation)
-        counter += 1
+        
+        generation = [generation; lords]
+        # for aniki in generation 
+        #     aniki.age += 1
+        # end
+        # generation = filter!(x -> x.age < 5, generation)
     end
     
     return best_solution
@@ -125,12 +162,12 @@ end
 
 function spawn_jabronis(tsp_data::TSP)
     population::Vector{Human} = []
-    algorithms::Vector{Tuple{Function, Any}} = [(k_random, 1), (two_opt, 0), (tabu_search, k_random)]
-
+    # algorithms::Vector{Tuple{Function, Any}} = [(k_random, 1), (two_opt, 0), (tabu_search, k_random)]
+    algorithms::Vector{Tuple{Function, Any}} = [(k_random, 1)]
     for (i, algorithm) in enumerate(algorithms)
         println(algorithm)
         for j in 1:RACE_SIZE
-            push!(population, new_human(tsp_data, algorithm[1], 10, algorithm[2], 1))
+            push!(population, new_human(tsp_data, algorithm[1], algorithm[2], 1))
         end
     end
     
@@ -150,8 +187,8 @@ function elections(group::Vector{Human}, subgroups_size::Int)
     slice::Vector{Human} = []
 
     shuffle!(group_copy)
-    println("SUBGROUP SIZE: $(subgroups_size)")
-    println("SUBGROUP COUNT: $(subgroups_count)")
+    # println("SUBGROUP SIZE: $(subgroups_size)")
+    # println("SUBGROUP COUNT: $(subgroups_count)")
 
     for i in 1:subgroups_count
         slice = group_copy[((i - 1) * subgroups_size + 1) : min((i * subgroups_size), group_length)]
@@ -248,13 +285,16 @@ function mutation!(sprout::Vector{Int})
 end
 
 # println(crossing_one([1,2,3,4,5,6,7,8,9,10], shuffle!([1,2,3,4,5,6,7,8,9,10])))
-# simcity(readTSP("TSP/berlin52.tsp"))
+tsp = readTSP("TSP/berlin52.tsp")
+sol = simcity(tsp)
+dis = objective_function(tsp,sol)
+println("$sol, $dis")
 function test()
     a::Vector{Int} = 1:10
-
-    println(a)
+    b::Vector{Int} = 11:16
+    println([a;b])
 end
 function test2(x)
     x = swap(1,3,x)
 end
-test()
+#test()
