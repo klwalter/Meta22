@@ -105,31 +105,6 @@ function simcity(tsp_data::TSP)
         size = length(lords)
         j::Int = 1
         # println("Number of lords: $size")
-        # while j < size
-        #     kids::Vector{Vector{Int}} = breeding_chambers(lords[j].solution, lords[j+1].solution, crossing_one)
-        #     time_elapsed = Dates.now() - time_start
-        #     if time_elapsed > time_limit
-        #         return best_solution
-        #     end
-        #     for kid in kids
-        #         temp_human = Human()
-        #         temp_human.solution = kid
-        #         temp_human.objective = objective_function(tsp_data, kid)
-        #         if temp_human.objective < best_dist
-        #             best_dist = temp_human.objective
-        #             best_solution = temp_human.solution
-
-        #             if opt[1] == true
-        #                 prd::Float64 = PRD(tsp_data, best_solution, opt[2])                        
-        #                 println("Generation number: $counter, solution: $best_solution, distance: $best_dist, prd: $prd%")
-        #             else
-        #                 println("Generation number: $counter, solution: $best_solution, distance: $best_dist")
-        #             end 
-        #         end
-        #         push!(generation, temp_human)
-        #     end
-        #     j += 2
-        # end
 
         kids::Vector{Vector{Int}} = []
         for a in 1:size-1, b in a+1:size
@@ -166,22 +141,19 @@ function simcity(tsp_data::TSP)
             end
             push!(generation, temp_human)
         end
+
         if stagnation_time_elapsed > stagnation_time_limit
-            generation = [mutation!(human.solution) for human in generation]
+            for human in generation
+                mutation!(human.solution)
+                human.objective = objective_function(tsp_data, human.solution)
+            end
+            println("Steve Rambo")
+            stagnation_time_elapsed = Second(0)
+            stagnation_time_start = Dates.now()
         end
+
         generation = [generation; lords]
-        # for aniki in generation 
-        #     aniki.age += 1
-        # end
-        # generation = filter!(x -> x.age < 5, generation)
     end
-    
-    # println("\n\t\t   +--------------------------+")
-    # println("\t\t   | Lords of the lockerrooms |")
-    # println("\t\t   +--------------------------+\n")
-    # for (i, lord) in enumerate(lords)
-    #     println("|--> Lord number $(i):\t[Name: $(lord.name) || Length: $(lord.objective)]")
-    # end
 end
 
 #########################
@@ -287,13 +259,49 @@ function crossing_one(father1::Vector{Int}, father2::Vector{Int})
     end
     return sprout
 end
+##############################
+# Partially Mapped Crossover #
+##############################
+
+function pmx(father1::Vector{Int}, father2::Vector{Int})
+    size::Int = length(father1)
+    sprout::Vector{Int} = zeros(Int, size)
+    found::Vector{Int} = zeros(Int, size)
+    i::Int = 1
+    j::Int = 1
+    while i >= j
+        i, j = rand(1:size,2)
+    end
+    for k in i:j
+        sprout[k] = father1[k]
+        found[father1[k]] = 1
+    end
+    for k in i:j
+        if found[father2[k]] == 0
+            new_place::Int = father1[k]
+            ind::Int = find_index(father2, new_place)
+            while i <= ind && ind <= j
+                new_place = father1[ind]
+                ind = find_index(father2, new_place)
+            end
+            sprout[ind] = father2[k]
+            found[father2[k]] = 1
+        end
+    end
+    for k in 1:size
+        if sprout[k] == 0
+            sprout[k] = father2[k]
+        end
+    end
+    return sprout
+end
 
 function breeding_chambers(father1::Vector{Int}, father2::Vector{Int}, crossing_algorithm::Function)
     kids::Vector{Vector{Int}} = []
     probability1::Float64, probability2::Float64 = rand(MersenneTwister(),2)
     sprout1 = crossing_algorithm(father1, father2)
     sprout2 = crossing_algorithm(father2, father1)
-    chance::Float64 = 0.05
+    chance::Float64 = 0.005
     if probability1 < chance
         mutation!(sprout1)
     end
@@ -319,17 +327,11 @@ end
 # tsp = readTSP("TSP/berlin52.tsp")
 # simcity(tsp)
 function test()
-    tsp = readTSP("TSP/berlin52.tsp")
-    a = [new_human(tsp, k_random, 1)]
-    b = copy(a)
-    println(a[1].solution)
-    println(b[1].solution)
-    println("===========================================")
-    for human in b
-        mutation!(human.solution)
-    end
-    println(a[1].solution)
-    println(b[1].solution)
+    f1 = [1,2,3,4,5,6,7,8,9]
+    f2 = [9,3,7,8,2,6,5,1,4]
+    println(f1)
+    println(f2)
+    println(pmx(f1,f2))
 end
 function test2(x)
     x = swap(1,3,x)

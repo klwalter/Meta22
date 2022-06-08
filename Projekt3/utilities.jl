@@ -163,3 +163,17 @@ function swap(x::Integer, y::Integer, list::Vector{<:Integer})
     swapped[x], swapped[y] = swapped[y], swapped[x]
     return swapped
 end
+
+##############
+# Find index #
+##############
+
+function find_index(list::Vector{Int}, element::Int)
+    size::Int = length(list)
+    for i in 1:size
+        if list[i] == element
+            return i
+        end
+    end
+    return 0
+end
