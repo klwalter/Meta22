@@ -6,6 +6,9 @@ include("heuristics.jl")
 include("utilities.jl")
 include("tabu.jl")
 
+const RACE_SIZE = 64
+const LADDER_SIZE = 8
+
 ###################
 # Human structure #
 ###################
@@ -26,11 +29,7 @@ end
 ##############
 # Simulation #
 ##############
-#
-# Dodać argumenty pozwalające na zmiane: populacji początkowej, rodzaju mutacji, czasu działania algorytmu, rodzaju krzyżowania, 
-# wielkość populacji (potencjalnie), czas stagnaji
-# Może poprawić radzenie sobie ze stagnacją. Możemy pomyśleć o elitryzmie
-#
+
 function simcity(tsp_data::TSP)
     ladders::Vector{Vector{Human}} = []
     lords::Vector{Human} = []
@@ -60,10 +59,6 @@ function simcity(tsp_data::TSP)
     if opt[1] == true
         prd::Float64 = PRD(tsp_data, best_solution, opt[2])                        
         println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\nPrd: $prd%")
-        if prd == 0.0
-            println("Number of last generation: $counter")
-            return best_solution
-        end
     else
         println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\n")
     end
@@ -89,6 +84,7 @@ function simcity(tsp_data::TSP)
     #############
     # Main loop #
     #############
+    println("START!")
     while true
         counter += 1
         lords = []
@@ -103,9 +99,12 @@ function simcity(tsp_data::TSP)
             lord = fight_in_the_lockerroom(subgroup)
             push!(lords, lord)
         end
-        
+        # gensize::Int= length(generation)
+        # println("Size of generation: $gensize")
         generation = []
         size = length(lords)
+        j::Int = 1
+        # println("Number of lords: $size")
 
         kids::Vector{Vector{Int}} = []
         for a in 1:size-1, b in a+1:size
@@ -117,6 +116,8 @@ function simcity(tsp_data::TSP)
                 return best_solution
             end
         end
+        # kidsize::Int = length(kids)
+        # println("Number of kids: $kidsize")
         for kid in kids
             temp_human = Human()
             temp_human.solution = kid
@@ -124,7 +125,6 @@ function simcity(tsp_data::TSP)
             time_elapsed = Dates.now() - time_start
             stagnation_time_elapsed = Dates.now() - stagnation_time_start
             if time_elapsed > time_limit
-                println("Number of last generation: $counter")
                 return best_solution
             end
             if temp_human.objective < best_dist
@@ -135,10 +135,6 @@ function simcity(tsp_data::TSP)
                 if opt[1] == true
                     prd = PRD(tsp_data, best_solution, opt[2])                        
                     println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\nPrd: $prd%")
-                    if prd == 0.0
-                        println("Number of last generation: $counter")
-                        return best_solution
-                    end
                 else
                     println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\n")
                 end 
@@ -163,11 +159,7 @@ end
 #########################
 # Generating Population #
 #########################
-#
-#
-# Trochę pokraczne. Do poprawy + więcej algorytmów generowania populacji. Ten i losowy
-#
-#
+
 function spawn_jabronis(tsp_data::TSP, population_size::Int)
     population::Vector{Human} = []
     # algorithms::Vector{Tuple{Function, Any}} = [(k_random, 1), (two_opt, 0), (tabu_search, k_random)]
@@ -187,11 +179,7 @@ end
 #############################
 # Divide into random groups #
 #############################
-#
-#
-# Połączyć z fight_in_the_lockerroom
-#
-#
+
 function elections(group::Vector{Human}, subgroups_size::Int)
     group_copy::Vector{Human} = copy(group)
     group_length::Int = length(group_copy)
@@ -222,11 +210,7 @@ end
 ##################################
 # Wiadomo, nie trzeba komentarza #
 ##################################
-#
-#
-# Wiadomo z czym połączyć
-#
-#
+
 function fight_in_the_lockerroom(group::Vector{Human})
     lord::Human = group[1]
     best::Float64 = lord.objective
