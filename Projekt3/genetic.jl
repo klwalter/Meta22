@@ -41,22 +41,6 @@ function simcity(tsp_data::TSP)
     group_size::Int = floor(sqrt(tsp_data.dimension)) * 10
     population_size::Int = group_size * group_size
 
-    ###################
-    # Stop conditions #
-    ###################
-
-    time_start::DateTime = Dates.now()
-    time_limit::Second = Second(300)
-    time_elapsed::Millisecond = Second(0)
-
-    ########################
-    # Detecting Stagnation #
-    ########################
-
-    stagnation_time_start::DateTime = Dates.now()
-    stagnation_time_limit::Second = Second(10)
-    stagnation_time_elapsed::Millisecond = Second(0)
-
     generation = spawn_jabronis(tsp_data, population_size)
     # gensize::Int= length(generation)
     # println("Size of generation: $gensize")
@@ -74,10 +58,28 @@ function simcity(tsp_data::TSP)
 
     if opt[1] == true
         prd::Float64 = PRD(tsp_data, best_solution, opt[2])                        
-        println("Generation number: $counter, solution: $best_solution, distance: $best_dist, prd: $prd%")
+        println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\nPrd: $prd%")
     else
-        println("Generation number: $counter, solution: $best_solution, distance: $best_dist")
+        println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\n")
     end
+
+
+    ########################
+    # Detecting Stagnation #
+    ########################
+
+    stagnation_time_start::DateTime = Dates.now()
+    stagnation_time_limit::Second = Second(10)
+    stagnation_time_elapsed::Millisecond = Second(0)
+
+    ###################
+    # Stop conditions #
+    ###################
+
+    time_start::DateTime = Dates.now()
+    time_limit::Second = Second(500)
+    time_elapsed::Millisecond = Second(0)
+
 
     #############
     # Main loop #
@@ -133,8 +135,9 @@ function simcity(tsp_data::TSP)
         for a in 1:size-1, b in a+1:size
             kids = [kids; breeding_chambers(lords[a].solution, lords[b].solution, crossing_one)]
             time_elapsed = Dates.now() - time_start
+            stagnation_time_elapsed = Dates.now() - stagnation_time_start
             if time_elapsed > time_limit
-                println("Last generation: $counter")
+                println("Number of last generation: $counter")
                 return best_solution
             end
         end
@@ -145,23 +148,27 @@ function simcity(tsp_data::TSP)
             temp_human.solution = kid
             temp_human.objective = objective_function(tsp_data, kid)
             time_elapsed = Dates.now() - time_start
+            stagnation_time_elapsed = Dates.now() - stagnation_time_start
             if time_elapsed > time_limit
                 return best_solution
             end
             if temp_human.objective < best_dist
                 best_dist = temp_human.objective
                 best_solution = temp_human.solution
-
+                stagnation_time_elapsed = Second(0)
+                stagnation_time_start = Dates.now()
                 if opt[1] == true
                     prd = PRD(tsp_data, best_solution, opt[2])                        
-                    println("Generation number: $counter, solution: $best_solution, distance: $best_dist, prd: $prd%")
+                    println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\nPrd: $prd%")
                 else
-                    println("Generation number: $counter, solution: $best_solution, distance: $best_dist")
+                    println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\n")
                 end 
             end
             push!(generation, temp_human)
         end
-        
+        if stagnation_time_elapsed > stagnation_time_limit
+            generation = [mutation!(human.solution) for human in generation]
+        end
         generation = [generation; lords]
         # for aniki in generation 
         #     aniki.age += 1
@@ -191,6 +198,7 @@ function spawn_jabronis(tsp_data::TSP, population_size::Int)
             push!(population, new_human(tsp_data, algorithm[1], algorithm[2], 1))
         end
     end
+    population[1:tsp_data.dimension] = [new_human(tsp_data, nearest_neighbour, i) for i in 1:tsp_data.dimension]
     # pop!(population)
     # push!(population, new_human(tsp_data, two_opt, 0, 1))
     return population
@@ -285,10 +293,11 @@ function breeding_chambers(father1::Vector{Int}, father2::Vector{Int}, crossing_
     probability1::Float64, probability2::Float64 = rand(MersenneTwister(),2)
     sprout1 = crossing_algorithm(father1, father2)
     sprout2 = crossing_algorithm(father2, father1)
-    if probability1 < 0.005
+    chance::Float64 = 0.05
+    if probability1 < chance
         mutation!(sprout1)
     end
-    if probability2 < 0.005
+    if probability2 < chance
         mutation!(sprout2)
     end
     push!(kids, sprout1)
@@ -307,14 +316,22 @@ function mutation!(sprout::Vector{Int})
 end
 
 # println(crossing_one([1,2,3,4,5,6,7,8,9,10], shuffle!([1,2,3,4,5,6,7,8,9,10])))
-tsp = readTSP("TSP/berlin52.tsp")
-simcity(tsp)
+# tsp = readTSP("TSP/berlin52.tsp")
+# simcity(tsp)
 function test()
-    a::Vector{Int} = 1:10
-    b::Vector{Int} = 11:16
-    println([a;b])
+    tsp = readTSP("TSP/berlin52.tsp")
+    a = [new_human(tsp, k_random, 1)]
+    b = copy(a)
+    println(a[1].solution)
+    println(b[1].solution)
+    println("===========================================")
+    for human in b
+        mutation!(human.solution)
+    end
+    println(a[1].solution)
+    println(b[1].solution)
 end
 function test2(x)
     x = swap(1,3,x)
 end
-#test()
+test()
