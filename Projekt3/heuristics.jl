@@ -6,7 +6,7 @@ using TSPLIB
 # K-random #
 ############
 
-function k_random(tsp_data::TSP, k::Int, aux_args...)::Vector{Int}
+function k_random(tsp_data::TSP, k::Int)::Vector{Int}
     rng::MersenneTwister = Random.MersenneTwister()
     vertices_number::Int = tsp_data.dimension
     
@@ -95,7 +95,7 @@ end
 # 2-OPT #
 #########
 
-function two_opt(tsp_data::TSP, aux_args...)::Vector{Int}
+function two_opt(tsp_data::TSP)::Vector{Int}
     rng::MersenneTwister = Random.MersenneTwister()
     size::Int = tsp_data.dimension
     solution::Vector{Int} = shuffle(rng, Vector(1:size))   # Wybieramy losowe rozwiąnie początkowe

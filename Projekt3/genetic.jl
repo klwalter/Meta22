@@ -170,20 +170,29 @@ end
 #
 function spawn_jabronis(tsp_data::TSP, population_size::Int)
     population::Vector{Human} = []
-    # algorithms::Vector{Tuple{Function, Any}} = [(k_random, 1), (two_opt, 0), (tabu_search, k_random)]
-    algorithms::Vector{Tuple{Function, Any}} = [(k_random, 1)]
-    for (i, algorithm) in enumerate(algorithms)
-        println(algorithm)
-        for j in 1:population_size
-            push!(population, new_human(tsp_data, algorithm[1], algorithm[2], 1))
-        end
+    for i in 1:tsp_data.dimension
+        push!(population, new_human(tsp_data, nearest_neighbour, i))
     end
-    population[1:tsp_data.dimension] = [new_human(tsp_data, nearest_neighbour, i) for i in 1:tsp_data.dimension]
-    # pop!(population)
-    # push!(population, new_human(tsp_data, two_opt, 0, 1))
+    for _ in tsp_data.dimension+1:population_size
+        push!(population, new_human(tsp_data, k_random, 1))
+    end
     return population
 end
 
+function two_opt_population(tsp_data::TSP, population_size::Int)
+    population::Vector{Human} = []
+    for i in 1:tsp_data.dimension
+        push!(population, new_human(tsp_data, two_opt))
+    end
+    for _ in tsp_data.dimension+1:population_size
+        push!(population, new_human(tsp_data, k_random, 1))
+    end
+    return population
+end
+
+function random_population(tsp_data::TSP, population_size::Int)
+    return [new_human(tsp_data, k_random, 1) for _ in 1:population_size]
+end
 #############################
 # Divide into random groups #
 #############################
