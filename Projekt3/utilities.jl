@@ -6,8 +6,7 @@ using TSPLIB
 ##########################
 
 function load_tsp()::TSP
-    println()
-    print("Enter the name of the instance with extension: ")
+    print("\n> Enter the name of the instance with extension: ")
     name::String = chomp(readline())
     path::String = "TSP/" * name
 
