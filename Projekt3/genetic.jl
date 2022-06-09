@@ -50,23 +50,7 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
     population_size::Int = group_size * group_size
     size::Int = 0
 
-    ##############################
-    # Crossover algorithm choice #
-    ##############################
-
-    crossover_type::Function = order_crossover
-
-    if crossover_choice == 1
-        crossover_type = order_crossover
-    elseif crossover_choice == 2
-        crossover_type = double_order_crossover
-    elseif crossover_choice == 3
-        crossover_type = mapped_crossover
-    else
-        println("IT'S MORBIN TIME!")
-        return
-    end
-
+    
     ###############################
     # Population algorithm choice #
     ###############################
@@ -84,6 +68,23 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
         return
     end
     
+    ##############################
+    # Crossover algorithm choice #
+    ##############################
+
+    crossover_type::Function = order_crossover
+
+    if crossover_choice == 1
+        crossover_type = order_crossover
+    elseif crossover_choice == 2
+        crossover_type = double_order_crossover
+    elseif crossover_choice == 3
+        crossover_type = mapped_crossover
+    else
+        println("IT'S MORBIN TIME!")
+        return
+    end
+
     ###################
     # Mutation choice #
     ###################
