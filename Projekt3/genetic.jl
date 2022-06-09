@@ -7,8 +7,6 @@ include("utilities.jl")
 include("tabu.jl")
 
 
-const POPULATION_MULTIPLIER = 9
-const RUNTIME_LIMIT = 120
 const STAGNATION_LIMIT = 10
 
 
@@ -37,7 +35,8 @@ end
 # wielkość populacji (potencjalnie), czas stagnaji
 # Może poprawić radzenie sobie ze stagnacją. Możemy pomyśleć o elitryzmie
 #
-function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, mutation_choice::Int)::Vector{Int}
+function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, mutation_choice::Int, chance::Float64 = 0.005, 
+                population_multiplier::Int = 10,runtime_limit::Int = 120)::Vector{Int}
     lords::Vector{Human} = []
     generation::Vector{Human} = []
     best_solution::Vector{Int} = []   
@@ -47,7 +46,7 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
     best_dist::Float64 = 0.0
     
     counter::Int = 1
-    group_size::Int = floor(sqrt(tsp_data.dimension)) * POPULATION_MULTIPLIER
+    group_size::Int = floor(sqrt(tsp_data.dimension)) * population_multiplier
     population_size::Int = group_size * group_size
     size::Int = 0
 
@@ -142,7 +141,7 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
     ###################
 
     time_start::DateTime = Dates.now()
-    time_limit::Second = Second(RUNTIME_LIMIT)
+    time_limit::Second = Second(runtime_limit)
     time_elapsed::Millisecond = Second(0)
 
     #############
@@ -164,7 +163,7 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
 
         kids::Vector{Vector{Int}} = []
         for a in 1:size-1, b in a+1:size
-            kids = [kids; init_crossover(lords[a].solution, lords[b].solution, crossover_type, mutation_type)]
+            kids = [kids; init_crossover(lords[a].solution, lords[b].solution, crossover_type, mutation_type, chance)]
             time_elapsed = Dates.now() - time_start
             stagnation_time_elapsed = Dates.now() - stagnation_time_start
             if time_elapsed > time_limit
@@ -436,10 +435,9 @@ end
 # Initialize crossover #
 ########################
 
-function init_crossover(father1::Vector{Int}, father2::Vector{Int}, crossover_algorithm::Function, mutation_type::Function)::Vector{Vector{Int}}
+function init_crossover(father1::Vector{Int}, father2::Vector{Int}, crossover_algorithm::Function, mutation_type::Function, chance::Float64)::Vector{Vector{Int}}
     kids::Vector{Vector{Int}} = []
-    
-    chance::Float64 = 0.005
+
     probability1::Float64, probability2::Float64 = rand(MersenneTwister(),2)
     
 
@@ -477,16 +475,17 @@ function mutation!(sprout::Vector{Int}, mutation_type::Function)
 end
 
 # println(ox([1,2,3,4,5,6,7,8,9,10], shuffle!([1,2,3,4,5,6,7,8,9,10])))
-tsp = readTSP("TSP/berlin52.tsp")
-genetic(tsp,1,1,1)
-# function test()
-#     f1 = [1,2,3,4,5,6,7,8,9]
-#     f2 = [9,3,7,8,2,6,5,1,4]
-#     println(f1)
-#     println(f2)
-#     println(double_order_crossover(f1,f2))
-# end
-# function test2(x)
-#     x = swap(1,3,x)
-# end
-# test()
+# tsp = readTSP("TSP/berlin52.tsp")
+# genetic(tsp,1,1,1)
+function test(a::Int = 5)
+    println(a)
+    f1 = [1,2,3,4,5,6,7,8,9]
+    f2 = [9,3,7,8,2,6,5,1,4]
+    println(f1)
+    println(f2)
+    println(double_order_crossover(f1,f2))
+end
+function test2(x)
+    x = swap(1,3,x)
+end
+test(7)
