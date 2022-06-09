@@ -478,15 +478,15 @@ end
 # println(ox([1,2,3,4,5,6,7,8,9,10], shuffle!([1,2,3,4,5,6,7,8,9,10])))
 # tsp = readTSP("TSP/berlin52.tsp")
 # genetic(tsp,1,1,1)
-function test(a::Int = 5)
-    println(a)
-    f1 = [1,2,3,4,5,6,7,8,9]
-    f2 = [9,3,7,8,2,6,5,1,4]
-    println(f1)
-    println(f2)
-    println(double_order_crossover(f1,f2))
-end
-function test2(x)
-    x = swap(1,3,x)
-end
-test(7)
+# function test(a::Int = 5)
+#     println(a)
+#     f1 = [1,2,3,4,5,6,7,8,9]
+#     f2 = [9,3,7,8,2,6,5,1,4]
+#     println(f1)
+#     println(f2)
+#     println(double_order_crossover(f1,f2))
+# end
+# function test2(x)
+#     x = swap(1,3,x)
+# end
+# test(7)
