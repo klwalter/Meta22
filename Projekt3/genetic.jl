@@ -97,13 +97,13 @@ function simcity(tsp_data::TSP)
             return best_solution
         end
         size::Int = 0
-        ladders = elections(generation, group_size)
+        # ladders = elections(generation, group_size)
     
-        for subgroup in ladders
-            lord = fight_in_the_lockerroom(subgroup)
-            push!(lords, lord)
-        end
-        
+        # for subgroup in ladders
+        #     lord = fight_in_the_lockerroom(subgroup)
+        #     push!(lords, lord)
+        # end
+        lords = elections(generation, group_size)
         generation = []
         size = length(lords)
 
@@ -193,14 +193,10 @@ end
 function random_population(tsp_data::TSP, population_size::Int)
     return [new_human(tsp_data, k_random, 1) for _ in 1:population_size]
 end
-#############################
-# Divide into random groups #
-#############################
-#
-#
-# Połączyć z fight_in_the_lockerroom
-#
-#
+########################
+# Selection algorithms #
+########################
+
 function elections(group::Vector{Human}, subgroups_size::Int)
     group_copy::Vector{Human} = copy(group)
     group_length::Int = length(group_copy)
@@ -225,29 +221,19 @@ function elections(group::Vector{Human}, subgroups_size::Int)
     #     end
     # end
 
-    return subgroups
-end
-
-##################################
-# Wiadomo, nie trzeba komentarza #
-##################################
-#
-#
-# Wiadomo z czym połączyć
-#
-#
-function fight_in_the_lockerroom(group::Vector{Human})
-    lord::Human = group[1]
-    best::Float64 = lord.objective
-
-    for resident in group
-        if resident.objective < best
-            best = resident.objective
-            lord = resident
+    lords::Vector{Human} = []
+    for group in subgroups 
+        lord::Human = group[1]
+        best::Float64 = lord.objective
+        for resident in group
+            if resident.objective < best
+                best = resident.objective
+                lord = resident
+            end
         end
+        push!(lords, lord)
     end
-
-    return lord
+    return lords
 end
 
 ###################
