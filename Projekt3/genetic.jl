@@ -38,18 +38,9 @@ end
 # Może poprawić radzenie sobie ze stagnacją. Możemy pomyśleć o elitryzmie
 #
 function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int)::Vector{Int}
-    ladders::Vector{Vector{Human}} = []
     lords::Vector{Human} = []
     generation::Vector{Human} = []
     best_solution::Vector{Int} = 1:tsp_data.dimension   
-
-    time_start::DateTime = Dates.now()
-    time_limit::Second = Second(RUNTIME_LIMIT)
-    time_elapsed::Millisecond = Second(0)
-
-    stagnation_time_start::DateTime = Dates.now()
-    stagnation_time_limit::Second = Second(STAGNATION_LIMIT)
-    stagnation_time_elapsed::Millisecond = Second(0)
 
     opt::Tuple{Bool, Float64} = get_optimal(tsp_data.name)
     
@@ -92,15 +83,17 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int)::
     # Detecting Stagnation #
     ########################
 
-
-
+    stagnation_time_start::DateTime = Dates.now()
+    stagnation_time_limit::Second = Second(STAGNATION_LIMIT)
+    stagnation_time_elapsed::Millisecond = Second(0)
 
     ###################
     # Stop conditions #
     ###################
 
-
-
+    time_start::DateTime = Dates.now()
+    time_limit::Second = Second(RUNTIME_LIMIT)
+    time_elapsed::Millisecond = Second(0)
 
     #############
     # Main loop #
