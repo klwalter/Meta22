@@ -37,7 +37,7 @@ end
 # wielkość populacji (potencjalnie), czas stagnaji
 # Może poprawić radzenie sobie ze stagnacją. Możemy pomyśleć o elitryzmie
 #
-function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int)::Vector{Int}
+function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, mutation_choice::Int)::Vector{Int}
     lords::Vector{Human} = []
     generation::Vector{Human} = []
     best_solution::Vector{Int} = 1:tsp_data.dimension   

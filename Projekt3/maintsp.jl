@@ -64,7 +64,7 @@ function main()
     instance_type::String, instance_name::String = "", ""
     seed::Int, nodes_count::Int, range::Int = 0, 0, 0
     aux_argument::Int = 0
-    choice::Int, alg_choice::Int, cross_choice = 0, 0, 0
+    choice::Int, alg_choice::Int, cross_choice::Int, mutation_choice::Int = 0, 0, 0, 0
     time::Float64 = 0
 
     print("\n========================[ LOAD INSTANCE ]========================")
@@ -194,8 +194,14 @@ function main()
             print("\n|-> 2. Partially mapped crossover")
             print("\n\\--> Your choice: ")
             cross_choice = parse(Int, readline())
+
+            print("\n\n> Choose mutation method:")
+            print("\n|-> 1. Invert")
+            print("\n|-> 2. Swap")
+            print("\n\\--> Your choice: ")
+            mutation_choice = parse(Int, readline())
             
-            time = @elapsed alg_test(tsp, 1, genetic, alg_choice, cross_choice) 
+            time = @elapsed alg_test(tsp, 1, genetic, alg_choice, cross_choice, mutation_choice) 
         else
             print("\nPlease enter correct number!\n")
         end
