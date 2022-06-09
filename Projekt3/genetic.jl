@@ -7,7 +7,7 @@ include("utilities.jl")
 include("tabu.jl")
 
 
-const POPULATION_MULTIPLIER = 10 
+const POPULATION_MULTIPLIER = 9
 const RUNTIME_LIMIT = 120
 const STAGNATION_LIMIT = 10
 
@@ -51,8 +51,56 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
     population_size::Int = group_size * group_size
     size::Int = 0
 
+    ##############################
+    # Crossover algorithm choice #
+    ##############################
 
-    generation = random_population(tsp_data, population_size)
+    crossover_type::Function = order_crossover
+
+    if crossover_choice == 1
+        crossover_type = order_crossover
+    elseif crossover_choice == 2
+        crossover_type = double_order_crossover
+    elseif crossover_choice == 3
+        crossover_type = mapped_crossover
+    else
+        println("IT'S MORBIN TIME!")
+        return
+    end
+
+    ###############################
+    # Population algorithm choice #
+    ###############################
+
+    population_type::Function = random_population
+
+    if population_choice == 1
+        population_type = random_population
+    elseif population_choice == 2
+        population_type = nearest_neighbour_population
+    elseif population_choice == 3
+        population_type = two_opt_population
+    else
+        println("Co się kurwa patrzysz")
+        return
+    end
+    
+    ###################
+    # Mutation choice #
+    ###################
+
+    mutation_type::Function = invert
+    if mutation_choice == 1
+        mutation_type = invert
+    elseif mutation_choice == 2
+        mutation_type = swap
+    else
+        println("Spierdalaj")
+        return
+    end
+
+
+    generation = population_type(tsp_data, population_size)
     best_solution = generation[1].solution
     best_dist = generation[1].objective
     # gensize::Int= length(generation)
@@ -116,7 +164,7 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
 
         kids::Vector{Vector{Int}} = []
         for a in 1:size-1, b in a+1:size
-            kids = [kids; init_crossover(lords[a].solution, lords[b].solution, mapped_crossover)]
+            kids = [kids; init_crossover(lords[a].solution, lords[b].solution, crossover_type, mutation_type)]
             time_elapsed = Dates.now() - time_start
             stagnation_time_elapsed = Dates.now() - stagnation_time_start
             if time_elapsed > time_limit
@@ -155,7 +203,7 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
 
         if stagnation_time_elapsed > stagnation_time_limit
             for human in generation
-                mutation!(human.solution)
+                mutation!(human.solution, mutation_type)
                 human.objective = objective_function(tsp_data, human.solution)
             end
             stagnation_time_elapsed = Second(0)
@@ -388,7 +436,7 @@ end
 # Initialize crossover #
 ########################
 
-function init_crossover(father1::Vector{Int}, father2::Vector{Int}, crossover_algorithm::Function)::Vector{Vector{Int}}
+function init_crossover(father1::Vector{Int}, father2::Vector{Int}, crossover_algorithm::Function, mutation_type::Function)::Vector{Vector{Int}}
     kids::Vector{Vector{Int}} = []
     
     chance::Float64 = 0.005
@@ -399,10 +447,10 @@ function init_crossover(father1::Vector{Int}, father2::Vector{Int}, crossover_al
     sprout2 = crossover_algorithm(father2, father1)
     
     if probability1 < chance
-        mutation!(sprout1)
+        mutation!(sprout1, mutation_type)
     end
     if probability2 < chance
-        mutation!(sprout2)
+        mutation!(sprout2, mutation_type)
     end
     
     push!(kids, sprout1)
@@ -416,7 +464,7 @@ end
 # Mutation #
 ############
 
-function mutation!(sprout::Vector{Int})
+function mutation!(sprout::Vector{Int}, mutation_type::Function)
     size::Int = length(sprout)
     i::Int = 1
     j::Int = 1
@@ -425,7 +473,7 @@ function mutation!(sprout::Vector{Int})
         i, j = rand(1:size,2)
     end
 
-    sprout[:] = invert(i, j, sprout)
+    sprout[:] = mutation_type(i, j, sprout)
 end
 
 # println(ox([1,2,3,4,5,6,7,8,9,10], shuffle!([1,2,3,4,5,6,7,8,9,10])))
