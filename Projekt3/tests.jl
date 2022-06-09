@@ -34,6 +34,7 @@ function cross()
             prd = PRD(tsp, solution, opt[2])
             dist = objective_function(tsp, solution)
             write(file,"$prd:$dist\n")
+            close(file)
         end
     end
 end
@@ -51,6 +52,7 @@ function mut()
             prd = PRD(tsp, solution, opt[2])
             dist = objective_function(tsp, solution)
             write(file,"$prd:$dist\n")
+            close(file)
         end
     end
 end
@@ -68,6 +70,7 @@ function pop()
             prd = PRD(tsp, solution, opt[2])
             dist = objective_function(tsp, solution)
             write(file,"$prd:$dist\n")
+            close(file)
         end
     end
 end
@@ -85,6 +88,7 @@ function chance()
             prd = PRD(tsp, solution, opt[2])
             dist = objective_function(tsp, solution)
             write(file,"$prd:$dist\n")
+            close(file)
         end
     end
 end
@@ -102,12 +106,13 @@ function multi()
             prd = PRD(tsp, solution, opt[2])
             dist = objective_function(tsp, solution)
             write(file,"$prd:$dist\n")
+            close(file)
         end
     end
 end
 
 cross()
-mut()
-pop()
-chance()
-multi()
+# mut()
+# pop()
+# chance()
+# multi()
