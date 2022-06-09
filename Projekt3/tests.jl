@@ -17,7 +17,7 @@ const mutacja_name = ["invert", "swap"]
 const populations = [1,2,3]
 const populations_name = ["random", "nearest_neighbour", "two_opt"]
 
-const mutation_chance = [i/1000 for i in 1:100]
+const mutation_chance = [i/1000 for i in 1:10]
 
 const multipliers = [i for i in 2:20]
 
@@ -28,7 +28,7 @@ function cross()
         tsp = readTSP("TSP/"*tsp_name*".tsp")
         for i in crossovers
             print("\n|->$(tsp.name):  crossover $(crossovers_name[i])")
-            file = open("Dane/crossover/"*tsp_name*"_"*crossovers_name[i])
+            file = open("Dane/crossover/"*tsp_name*"_"*crossovers_name[i], "w")
             solution = genetic(tsp, 2, i, 1)
             opt::Tuple{Bool, Float64} = get_optimal(tsp_name)
             prd = PRD(tsp, solution, opt[2])
@@ -45,7 +45,7 @@ function mut()
         tsp = readTSP("TSP/"*tsp_name*".tsp")
         for i in mutacja
             print("\n|->$(tsp.name):  mutation $(mutacja_name[i])")
-            file = open("Dane/mutation/"*tsp_name*"_"*mutacja_name[i])
+            file = open("Dane/mutation/"*tsp_name*"_"*mutacja_name[i], "w")
             solution = genetic(tsp, 2, 3, i)
             opt::Tuple{Bool, Float64} = get_optimal(tsp_name)
             prd = PRD(tsp, solution, opt[2])
@@ -62,7 +62,7 @@ function pop()
         tsp = readTSP("TSP/"*tsp_name*".tsp")
         for i in populations
             print("\n|->$(tsp.name):  population $(populations_name[i])")
-            file = open("Dane/population/"*tsp_name*"_"*populations_name[i])
+            file = open("Dane/population/"*tsp_name*"_"*populations_name[i], "w")
             solution = genetic(tsp, i, 3, 1)
             opt::Tuple{Bool, Float64} = get_optimal(tsp_name)
             prd = PRD(tsp, solution, opt[2])
@@ -79,7 +79,7 @@ function chance()
         tsp = readTSP("TSP/"*tsp_name*".tsp")
         for i in mutation_chance
             print("\n|->$(tsp.name):  chance $i")
-            file = open("Dane/chance/"*tsp_name*"_"*"i")
+            file = open("Dane/chance/"*tsp_name*"_"*"i", "w")
             solution = genetic(tsp, 2, 3, 1, i)
             opt::Tuple{Bool, Float64} = get_optimal(tsp_name)
             prd = PRD(tsp, solution, opt[2])
@@ -96,7 +96,7 @@ function multi()
         tsp = readTSP("TSP/"*tsp_name*".tsp")
         for i in multipliers
             print("\n|->$(tsp.name):  chance $i")
-            file = open("Dane/multipliers/"*tsp_name*"_"*"i")
+            file = open("Dane/multipliers/"*tsp_name*"_"*"i", "w")
             solution = genetic(tsp, 2, 3, 1, 0.005, i)
             opt::Tuple{Bool, Float64} = get_optimal(tsp_name)
             prd = PRD(tsp, solution, opt[2])
