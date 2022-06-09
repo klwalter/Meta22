@@ -1,0 +1,8 @@
+Prd(start)
+Prd(x overa)
+Prd(mutacji)
+Prd(od pstwa mutacji)
+Prd(czas)
+porównanie do innych heurystyk
+Złożoność
+Bazowo: mutacja = invert, czas 2 minuty, populacja = sąsiad, xover = mapping

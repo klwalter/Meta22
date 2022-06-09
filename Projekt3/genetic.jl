@@ -8,7 +8,7 @@ include("tabu.jl")
 
 
 const POPULATION_MULTIPLIER = 10 
-const RUNTIME_LIMIT = 300
+const RUNTIME_LIMIT = 120
 const STAGNATION_LIMIT = 10
 
 
@@ -40,11 +40,11 @@ end
 function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, mutation_choice::Int)::Vector{Int}
     lords::Vector{Human} = []
     generation::Vector{Human} = []
-    best_solution::Vector{Int} = 1:tsp_data.dimension   
+    best_solution::Vector{Int} = []   
 
     opt::Tuple{Bool, Float64} = get_optimal(tsp_data.name)
     
-    best_dist::Float64 = objective_function(tsp_data, best_solution)
+    best_dist::Float64 = 0.0
     
     counter::Int = 1
     group_size::Int = floor(sqrt(tsp_data.dimension)) * POPULATION_MULTIPLIER
@@ -52,7 +52,9 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
     size::Int = 0
 
 
-    generation = nearest_neighbour_population(tsp_data, population_size)
+    generation = random_population(tsp_data, population_size)
+    best_solution = generation[1].solution
+    best_dist = generation[1].objective
     # gensize::Int= length(generation)
     # println("Size of generation: $gensize")
 
@@ -114,7 +116,7 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
 
         kids::Vector{Vector{Int}} = []
         for a in 1:size-1, b in a+1:size
-            kids = [kids; crossover(lords[a].solution, lords[b].solution, ox)]
+            kids = [kids; init_crossover(lords[a].solution, lords[b].solution, mapped_crossover)]
             time_elapsed = Dates.now() - time_start
             stagnation_time_elapsed = Dates.now() - stagnation_time_start
             if time_elapsed > time_limit
@@ -156,7 +158,6 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
                 mutation!(human.solution)
                 human.objective = objective_function(tsp_data, human.solution)
             end
-            println("Steve Rambo")
             stagnation_time_elapsed = Second(0)
             stagnation_time_start = Dates.now()
         end
@@ -172,7 +173,6 @@ end
 
 function random_population(tsp_data::TSP, population_size::Int)::Vector{Human}
     population::Vector{Human} = [new_human(tsp_data, k_random, 1) for _ in 1:population_size]
-
     return population
 end
 
@@ -229,7 +229,7 @@ function tournament_selection(population::Vector{Human}, population_size::Int, s
         lord::Human = subgroup[1]
         best::Float64 = lord.objective
 
-        for human in group
+        for human in subgroup
             if human.objective < best
                 best = human.objective
                 lord = human
@@ -248,16 +248,16 @@ end
 ###################
 
 function order_crossover(parent1::Vector{Int}, parent2::Vector{Int})::Vector{Int}
+    size::Int = length(parent1)
     sprout::Vector{Int} = zeros(Int, size)
     found::Vector{Int} = zeros(Int, size)
 
-    size::Int = length(parent1)
-    half_size::Int = div(size, 2)
+    cross_point::Int = rand(1:size-1)
     i::Int = 1
     j::Int = 1
 
 
-    while i <= half_size
+    while i <= cross_point
         sprout[i] = parent1[i]
         found[parent1[i]] = 1
 
@@ -294,10 +294,10 @@ end
 ##############################
 
 function mapped_crossover(parent1::Vector{Int}, parent2::Vector{Int})::Vector{Int}
+    size::Int = length(parent1)
     sprout::Vector{Int} = zeros(Int, size)
     found::Vector{Int} = zeros(Int, size)
 
-    size::Int = length(parent1)
     i::Int = 1
     j::Int = 1
 
@@ -335,6 +335,54 @@ function mapped_crossover(parent1::Vector{Int}, parent2::Vector{Int})::Vector{In
     return sprout
 end
 
+################################
+# Double point order crossover #
+################################
+
+function double_order_crossover(parent1::Vector{Int}, parent2::Vector{Int})::Vector{Int}
+    size::Int = length(parent1)
+    sprout::Vector{Int} = zeros(Int, size)
+    found::Vector{Int} = zeros(Int, size)
+
+    i::Int = 1
+    j::Int = 1
+
+    while i >= j
+        i, j = rand(1:size,2)
+    end
+
+    for a in i:j 
+        sprout[a] = parent1[a]
+        found[parent1[a]] = 1
+    end
+    k::Int = j + 1
+    if k > size
+        k = 1
+    end
+    while k != i
+
+        while found[parent2[j]] != 0
+            if j == size
+                j = 0
+            end
+            j += 1
+        end
+
+        sprout[k] = parent2[j]
+        found[parent2[j]] = 1
+
+        if j == size
+            j = 0
+        end
+        if k == size
+            k = 0
+        end
+        j += 1
+        k += 1
+    end
+
+    return sprout
+end
 
 ########################
 # Initialize crossover #
@@ -381,14 +429,14 @@ function mutation!(sprout::Vector{Int})
 end
 
 # println(ox([1,2,3,4,5,6,7,8,9,10], shuffle!([1,2,3,4,5,6,7,8,9,10])))
-# tsp = readTSP("TSP/berlin52.tsp")
-# simcity(tsp)
+tsp = readTSP("TSP/berlin52.tsp")
+genetic(tsp,1,1,1)
 # function test()
 #     f1 = [1,2,3,4,5,6,7,8,9]
 #     f2 = [9,3,7,8,2,6,5,1,4]
 #     println(f1)
 #     println(f2)
-#     println(pmx(f1,f2))
+#     println(double_order_crossover(f1,f2))
 # end
 # function test2(x)
 #     x = swap(1,3,x)
