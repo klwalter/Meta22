@@ -42,7 +42,7 @@ function simcity(tsp_data::TSP)
     group_size::Int = floor(sqrt(tsp_data.dimension)) * 10
     population_size::Int = group_size * group_size
 
-    generation = spawn_jabronis(tsp_data, population_size)
+    generation = nearest_neighbour_population(tsp_data, population_size)
     # gensize::Int= length(generation)
     # println("Size of generation: $gensize")
 
@@ -97,19 +97,19 @@ function simcity(tsp_data::TSP)
             return best_solution
         end
         size::Int = 0
-        # ladders = elections(generation, group_size)
+        # ladders = tournament(generation, group_size)
     
         # for subgroup in ladders
         #     lord = fight_in_the_lockerroom(subgroup)
         #     push!(lords, lord)
         # end
-        lords = elections(generation, group_size)
+        lords = tournament(generation, group_size)
         generation = []
         size = length(lords)
 
         kids::Vector{Vector{Int}} = []
         for a in 1:size-1, b in a+1:size
-            kids = [kids; breeding_chambers(lords[a].solution, lords[b].solution, crossing_one)]
+            kids = [kids; crossover(lords[a].solution, lords[b].solution, ox)]
             time_elapsed = Dates.now() - time_start
             stagnation_time_elapsed = Dates.now() - stagnation_time_start
             if time_elapsed > time_limit
@@ -163,12 +163,8 @@ end
 #########################
 # Generating Population #
 #########################
-#
-#
-# Trochę pokraczne. Do poprawy + więcej algorytmów generowania populacji. Ten i losowy
-#
-#
-function spawn_jabronis(tsp_data::TSP, population_size::Int)
+
+function nearest_neighbour_population(tsp_data::TSP, population_size::Int)
     population::Vector{Human} = []
     for i in 1:tsp_data.dimension
         push!(population, new_human(tsp_data, nearest_neighbour, i))
@@ -197,7 +193,7 @@ end
 # Selection algorithms #
 ########################
 
-function elections(group::Vector{Human}, subgroups_size::Int)
+function tournament(group::Vector{Human}, subgroups_size::Int)
     group_copy::Vector{Human} = copy(group)
     group_length::Int = length(group_copy)
 
@@ -240,7 +236,7 @@ end
 # Order Crossover #
 ###################
 
-function crossing_one(father1::Vector{Int}, father2::Vector{Int})
+function ox(father1::Vector{Int}, father2::Vector{Int})
     size::Int = length(father1)
     half_size::Int = div(size,2)
     sprout::Vector{Int} = zeros(Int, size)
@@ -307,7 +303,7 @@ function pmx(father1::Vector{Int}, father2::Vector{Int})
     return sprout
 end
 
-function breeding_chambers(father1::Vector{Int}, father2::Vector{Int}, crossing_algorithm::Function)
+function crossover(father1::Vector{Int}, father2::Vector{Int}, crossing_algorithm::Function)
     kids::Vector{Vector{Int}} = []
     probability1::Float64, probability2::Float64 = rand(MersenneTwister(),2)
     sprout1 = crossing_algorithm(father1, father2)
@@ -334,7 +330,7 @@ function mutation!(sprout::Vector{Int})
     sprout[:] = invert(i, j, sprout)
 end
 
-# println(crossing_one([1,2,3,4,5,6,7,8,9,10], shuffle!([1,2,3,4,5,6,7,8,9,10])))
+# println(ox([1,2,3,4,5,6,7,8,9,10], shuffle!([1,2,3,4,5,6,7,8,9,10])))
 # tsp = readTSP("TSP/berlin52.tsp")
 # simcity(tsp)
 function test()
