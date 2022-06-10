@@ -36,7 +36,7 @@ end
 # Może poprawić radzenie sobie ze stagnacją. Możemy pomyśleć o elitryzmie
 #
 function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, mutation_choice::Int, chance::Float64 = 0.005, 
-                population_multiplier::Int = 10,runtime_limit::Int = 60)::Vector{Int}
+                population_multiplier::Int = 10,runtime_limit::Int = 6000)::Vector{Int}
     lords::Vector{Human} = []
     generation::Vector{Human} = []
     best_solution::Vector{Int} = []   
@@ -119,13 +119,13 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
 
     if opt[1] == true
         prd::Float64 = PRD(tsp_data, best_solution, opt[2])                        
-        # println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\nPrd: $prd%")
+        println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\nPrd: $prd%")
         if prd == 0.0
-            # println("Number of last generation: $counter")
+            println("Number of last generation: $counter")
             return best_solution
         end
     else
-        # println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\n")
+        println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\n")
     end
 
 
@@ -149,7 +149,7 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
     # Main loop #
     #############
 
-    while true
+    while counter < 10000
         counter += 1
         lords = []
         time_elapsed = Dates.now() - time_start
@@ -168,7 +168,7 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
             time_elapsed = Dates.now() - time_start
             stagnation_time_elapsed = Dates.now() - stagnation_time_start
             if time_elapsed > time_limit
-                # println("Number of last generation: $counter")
+                println("Number of last generation: $counter")
                 return best_solution
             end
         end
@@ -179,7 +179,7 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
             time_elapsed = Dates.now() - time_start
             stagnation_time_elapsed = Dates.now() - stagnation_time_start
             if time_elapsed > time_limit
-                # println("Number of last generation: $counter")
+                println("Number of last generation: $counter")
                 return best_solution
             end
             if temp_human.objective < best_dist
@@ -189,13 +189,13 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
                 stagnation_time_start = Dates.now()
                 if opt[1] == true
                     prd = PRD(tsp_data, best_solution, opt[2])                        
-                    # println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\nPrd: $prd%")
+                    println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\nPrd: $prd%")
                     if prd == 0.0
-                        # println("Number of last generation: $counter")
+                        println("Number of last generation: $counter")
                         return best_solution
                     end
                 else
-                    # println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\n")
+                    println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\n")
                 end 
             end
             push!(generation, temp_human)
@@ -476,8 +476,8 @@ function mutation!(sprout::Vector{Int}, mutation_type::Function)
 end
 
 # println(ox([1,2,3,4,5,6,7,8,9,10], shuffle!([1,2,3,4,5,6,7,8,9,10])))
-# tsp = readTSP("TSP/berlin52.tsp")
-# genetic(tsp,1,1,1)
+tsp = readTSP("TSP/berlin52.tsp")
+genetic(tsp,1,1,1)
 # function test(a::Int = 5)
 #     println(a)
 #     f1 = [1,2,3,4,5,6,7,8,9]
