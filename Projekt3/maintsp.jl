@@ -17,7 +17,7 @@ function alg_test(tsp_data::TSP, reps::Integer, algorithm::Function, aux_args...
     print("\n|-> Variant: ", tsp_data.weight_type)
     print("\n|-> Algorithm: ", algorithm)
     print("\n|-> Repetitions: ", reps)
-    print("\n\\--> Progress:")
+    print("\n\\--> Progress:\n\n")
 
 
     best_path::Vector{Int} = []
@@ -51,7 +51,7 @@ function alg_test(tsp_data::TSP, reps::Integer, algorithm::Function, aux_args...
         optimal_dist::Float64 = opt_pair[2]
         print("\n|-> PRD: ", PRD(tsp_data, best_path, optimal_dist), "%")
     else
-        print("\n|-> Optimal tour file doesn't exist, can't obtain PRD!")
+        print("\n|-> Optimal tour file doesn't exist, can't obtain PRD")
     end
 end
 
@@ -77,36 +77,37 @@ function main()
     if choice == 1
         tsp::TSP = load_tsp()
     elseif choice == 2
-        print("\nPlease enter parameters for generator:\nAsymmetric format? (1 - true): ")
+        print("\n> Please enter parameters for generator:")
+        print("\n|-> Asymmetric format? (1 - true): ")
         asymmetric_flag = parse(Bool, readline())
 
         if asymmetric_flag != 1
-            print("\nType of instance (FULL_MATRIX, LOWER_DIAG_ROW, EUC_2D): ")
+            print("|-> Type of instance (FULL_MATRIX, LOWER_DIAG_ROW, EUC_2D): ")
             instance_type = convert(String, chomp(readline()))
 
             if instance_type != "EUC_2D" && instance_type != "FULL_MATRIX" && instance_type != "LOWER_DIAG_ROW"
-                print("\nPlease enter correct type of instance\n")
+                print("\n\n=========================[ INPUT ERROR ]=========================\n\n")
                 return
             end
         else
             instance_type = "FULL_MATRIX"
         end
 
-        print("\nNumber of nodes: ")
+        print("|-> Number of nodes: ")
         nodes_count = parse(Int, readline())
 
-        print("\nSeed for RNG: ")
+        print("|-> Seed for RNG: ")
         seed = parse(Int, readline())
 
-        print("\nRange of values (from 1 to X): ")
+        print("|-> Range of values (from 1 to X): ")
         range = parse(Int, readline())
 
-        print("\nEnter the name of the instance with extension: ")
+        print("\\-> Enter the name of the instance with extension: ")
         instance_name = convert(String, chomp(readline()))
         
         tsp = random_instance(asymmetric_flag, instance_type, nodes_count, seed, range, instance_name)
     else
-        print("\nPlease enter correct number\n")
+        print("\n\n=========================[ INPUT ERROR ]=========================\n\n")
         return -1
     end
 
@@ -128,7 +129,7 @@ function main()
             print("\n\t\t| You have chosen K-random |")
             print("\n\t\t+--------------------------+")
 
-            print("\n\nPlease enter the K-value: ")
+            print("\n\n> Please enter the K-value: ")
             aux_argument = parse(Int, readline())
 
             time = @elapsed alg_test(tsp, REPETITIONS, k_random, aux_argument)
@@ -137,14 +138,14 @@ function main()
             print("\n\t\t| You have chosen Nearest neighbour |")
             print("\n\t\t+-----------------------------------+")
 
-            print("\nPlease enter the starting node: ")
+            print("\n\n> Please enter the starting node: ")
             aux_argument = parse(Int, readline())
 
             time = @elapsed alg_test(tsp, 1, nearest_neighbour, aux_argument)            
         elseif choice == 3
-            print("\n\t\t+--------------------------------------------+")
-            print("\n\t\t| You have chosen Extended nearest neighbour |")
-            print("\n\t\t+--------------------------------------------+")
+            print("\n\t+--------------------------------------------+")
+            print("\n\t| You have chosen Extended nearest neighbour |")
+            print("\n\t+--------------------------------------------+")
 
             time = @elapsed alg_test(tsp, 1, extended_neighbour)
         elseif choice == 4
@@ -169,7 +170,7 @@ function main()
             if alg_choice == 1
                 time = @elapsed alg_test(tsp, REPETITIONS, tabu_search, k_random, 1)
             elseif alg_choice == 2
-                print("\nPlease enter the K-value: ")
+                print("\n> Please enter the K-value: ")
                 aux_argument = parse(Int, readline())
                 time = @elapsed alg_test(tsp, REPETITIONS, tabu_search, k_random, aux_argument)
             elseif alg_choice == 3
@@ -189,21 +190,39 @@ function main()
             print("\n\\--> Your choice: ")
             alg_choice = parse(Int, readline())
 
+            if alg_choice > 3 || alg_choice < 1
+                print("\n\n=========================[ INPUT ERROR ]=========================\n\n")
+                return
+            end
+
             print("\n\n> Choose starting crossover method:")
             print("\n|-> 1. Ordered crossover")
-            print("\n|-> 2. Partially mapped crossover")
+            print("\n|-> 2. Double ordered crossover")
+            print("\n|-> 3. Partially mapped crossover")
             print("\n\\--> Your choice: ")
             cross_choice = parse(Int, readline())
+
+            if cross_choice > 3 || cross_choice < 1
+                print("\n\n=========================[ INPUT ERROR ]=========================\n\n")
+                return
+            end
+
 
             print("\n\n> Choose mutation method:")
             print("\n|-> 1. Invert")
             print("\n|-> 2. Swap")
             print("\n\\--> Your choice: ")
             mutation_choice = parse(Int, readline())
-            
+
+            if mutation_choice > 2 || mutation_choice < 1
+                print("\n\n=========================[ INPUT ERROR ]=========================\n\n")
+                return
+            end
+
+
             time = @elapsed alg_test(tsp, 1, genetic, alg_choice, cross_choice, mutation_choice) 
         else
-            print("\nPlease enter correct number!\n")
+            print("\n\n=========================[ INPUT ERROR ]=========================\n\n")
         end
 
         print("\n|-> Time elapsed: ", time, "s")
@@ -211,10 +230,10 @@ function main()
         choice = 0
         
         print("\n\n=========================[ REPEAT TEST ]========================")
-        print("\n\nDo you want to repeat tests for other algorithm?")
-        print("\n1. Yes")
-        print("\n2-0. Exit app")
-        print("\nYour choice: ")
+        print("\n\n> Do you want to repeat tests for other algorithm?")
+        print("\n|-> 1. Yes")
+        print("\n|-> 2-0. Exit app")
+        print("\n\\-> Your choice: ")
         choice = parse(Int, readline())
 
         if choice == 1

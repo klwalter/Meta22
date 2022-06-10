@@ -7,7 +7,7 @@ include("utilities.jl")
 include("tabu.jl")
 
 
-const STAGNATION_LIMIT = 10
+const STAGNATION_LIMIT = 2
 
 
 ###################
@@ -17,7 +17,7 @@ const STAGNATION_LIMIT = 10
 @kwdef mutable struct Human
     solution::Vector{Int} = []
     objective::Float64 = 0.0
-    # age::Int = 0
+    age::Int = 0
 end
 
 function new_human(tsp_data::TSP, start_algorithm::Function, aux_args...)::Human
@@ -36,7 +36,7 @@ end
 # Może poprawić radzenie sobie ze stagnacją. Możemy pomyśleć o elitryzmie
 #
 function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, mutation_choice::Int, chance::Float64 = 0.005, 
-                population_multiplier::Int = 10,runtime_limit::Int = 6000)::Vector{Int}
+                population_multiplier::Int = 8, runtime_limit::Int = 30)::Vector{Int}
     lords::Vector{Human} = []
     generation::Vector{Human} = []
     best_solution::Vector{Int} = []   
@@ -48,7 +48,7 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
     counter::Int = 1
     group_size::Int = floor(sqrt(tsp_data.dimension)) * population_multiplier
     population_size::Int = group_size * group_size
-    size::Int = 0
+    lords_count::Int = 0
 
     
     ###############################
@@ -57,16 +57,12 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
 
     population_type::Function = random_population
 
-    if population_choice == 1
-        population_type = random_population
-    elseif population_choice == 2
+    if population_choice == 2
         population_type = nearest_neighbour_population
     elseif population_choice == 3
         population_type = two_opt_population
-    else
-        println("Co się kurwa patrzysz")
-        return
     end
+
     
     ##############################
     # Crossover algorithm choice #
@@ -74,37 +70,28 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
 
     crossover_type::Function = order_crossover
 
-    if crossover_choice == 1
-        crossover_type = order_crossover
-    elseif crossover_choice == 2
+    if crossover_choice == 2
         crossover_type = double_order_crossover
     elseif crossover_choice == 3
         crossover_type = mapped_crossover
-    else
-        println("IT'S MORBIN TIME!")
-        return
     end
+
 
     ###################
     # Mutation choice #
     ###################
 
     mutation_type::Function = invert
-    if mutation_choice == 1
-        mutation_type = invert
-    elseif mutation_choice == 2
+
+    if mutation_choice == 2
         mutation_type = swap
-    else
-        println("Spierdalaj")
-        return
     end
 
 
     generation = population_type(tsp_data, population_size)
     best_solution = generation[1].solution
     best_dist = generation[1].objective
-    # gensize::Int= length(generation)
-    # println("Size of generation: $gensize")
+
 
     ######################################
     # Find best from starting population #
@@ -119,13 +106,13 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
 
     if opt[1] == true
         prd::Float64 = PRD(tsp_data, best_solution, opt[2])                        
-        # println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\nPrd: $prd%")
+        println("|-> Generation number: $counter\tDistance: $best_dist\tPrd: $prd%")
         if prd == 0.0
-            # println("Number of last generation: $counter")
+            println("Number of last generation: $counter")
             return best_solution
         end
     else
-        # println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\n")
+        println("|-> Generation number: $counter\tDistance: $best_dist\n")
     end
 
 
@@ -137,6 +124,7 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
     stagnation_time_limit::Second = Second(STAGNATION_LIMIT)
     stagnation_time_elapsed::Millisecond = Second(0)
 
+
     ###################
     # Stop conditions #
     ###################
@@ -145,11 +133,12 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
     time_limit::Second = Second(runtime_limit)
     time_elapsed::Millisecond = Second(0)
 
+
     #############
     # Main loop #
     #############
 
-    while counter < 1000
+    while true
         counter += 1
         lords = []
         time_elapsed = Dates.now() - time_start
@@ -160,58 +149,72 @@ function genetic(tsp_data::TSP, population_choice::Int, crossover_choice::Int, m
 
         lords = tournament_selection(generation, population_size, group_size)
         generation = []
-        size = length(lords)
+        lords_count = length(lords)
 
         kids::Vector{Vector{Int}} = []
-        for a in 1:size-1, b in a+1:size
+        for a in 1:lords_count - 1, b in a + 1:lords_count
             kids = [kids; init_crossover(lords[a].solution, lords[b].solution, crossover_type, mutation_type, chance)]
+            
             time_elapsed = Dates.now() - time_start
             stagnation_time_elapsed = Dates.now() - stagnation_time_start
+
             if time_elapsed > time_limit
-                # println("Number of last generation: $counter")
+                println("\\-> Number of last generation: $counter")
                 return best_solution
             end
         end
+
         for kid in kids
             temp_human = Human()
             temp_human.solution = kid
             temp_human.objective = objective_function(tsp_data, kid)
+            
             time_elapsed = Dates.now() - time_start
             stagnation_time_elapsed = Dates.now() - stagnation_time_start
+            
             if time_elapsed > time_limit
-                # println("Number of last generation: $counter")
+                println("\\-> Number of last generation: $counter <<")
                 return best_solution
             end
+            
             if temp_human.objective < best_dist
                 best_dist = temp_human.objective
                 best_solution = temp_human.solution
+                
                 stagnation_time_elapsed = Second(0)
                 stagnation_time_start = Dates.now()
+                
                 if opt[1] == true
                     prd = PRD(tsp_data, best_solution, opt[2])                        
-                    # println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\nPrd: $prd%")
+                    println("|-> Generation number: $counter\tDistance: $best_dist\tPrd: $prd%")
+
                     if prd == 0.0
-                        # println("Number of last generation: $counter")
+                        println("\\-> Number of last generation: $counter")
                         return best_solution
                     end
                 else
-                    # println("Solution: $best_solution\nGeneration number: $counter\nDistance: $best_dist\n")
+                    println("|-> Generation number: $counter\tDistance: $best_dist\n")
                 end 
             end
+            
             push!(generation, temp_human)
         end
 
         if stagnation_time_elapsed > stagnation_time_limit
-            for human in generation
-                mutation!(human.solution, mutation_type)
-                human.objective = objective_function(tsp_data, human.solution)
+            mutated_part::Int = ceil((population_size - lords_count) / 10)
+
+            for i in 1:mutated_part
+                mutation!(generation[i].solution, invert)
+                generation[i].objective = objective_function(tsp_data, generation[i].solution)
             end
+                        
             stagnation_time_elapsed = Second(0)
             stagnation_time_start = Dates.now()
         end
 
         generation = [generation; lords]
     end
+
     return best_solution
 end
 
@@ -222,6 +225,7 @@ end
 
 function random_population(tsp_data::TSP, population_size::Int)::Vector{Human}
     population::Vector{Human} = [new_human(tsp_data, k_random, 1) for _ in 1:population_size]
+    
     return population
 end
 
@@ -255,7 +259,7 @@ end
 
 
 ########################
-# Selection algorithms #
+# Tournament selection #
 ########################
 
 function tournament_selection(population::Vector{Human}, population_size::Int, subgroups_size::Int)::Vector{Human}
@@ -437,14 +441,14 @@ end
 # Initialize crossover #
 ########################
 
-function init_crossover(father1::Vector{Int}, father2::Vector{Int}, crossover_algorithm::Function, mutation_type::Function, chance::Float64)::Vector{Vector{Int}}
+function init_crossover(parent1::Vector{Int}, parent2::Vector{Int}, crossover_algorithm::Function, mutation_type::Function, chance::Float64)::Vector{Vector{Int}}
     kids::Vector{Vector{Int}} = []
 
     probability1::Float64, probability2::Float64 = rand(MersenneTwister(),2)
     
 
-    sprout1 = crossover_algorithm(father1, father2)
-    sprout2 = crossover_algorithm(father2, father1)
+    sprout1 = crossover_algorithm(parent1, parent2)
+    sprout2 = crossover_algorithm(parent2, parent1)
     
     if probability1 < chance
         mutation!(sprout1, mutation_type)
