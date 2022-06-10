@@ -22,19 +22,19 @@ def plot(file, title_name, x_name, y_name):
         while line[i] != ":": 
             i += 1
         x = int(line[:i])
-        y = float(line[i+1:-1])/x**2
+        y = float(line[i+1:-1])/x**3
         arguments.append(x)
         values.append(y)
     plt.plot(arguments, values)
     plt.xlabel(x_name)
     plt.ylabel(y_name)
     plt.title(title_name)
-    plt.savefig("Plots/" + title_name)
-    plt.clf()
-    # plt.show()
-# file = open("Dane/time/results", "r")
-# plot(file, "Time(n) \\ n^2", "n = Instance size", "Time elapsed[s]")
-# file.close()
+    # plt.savefig("Plots/" + title_name)
+    # plt.clf()
+    plt.show()
+file = open("Dane/time/results", "r")
+plot(file, "Time_quotient_3", "n = Instance size", "Time elapsed[s]")
+file.close()
 
 def hist(path, title_name, tsp_name, value_name, x_label, y_label):
     zd = -0.5*(len(value_name) - 1)
@@ -104,8 +104,8 @@ def plot2(path, tsp_name, value_name, title_name, x_name, y_name):
     plt.savefig("Plots/" + title_name)
     plt.clf()
     # plt.show()
-plot2("Dane/multipliers/", tsp_instances[:3], multipliers, "Multipliers for dimension size sub 100", "Multiplier value", "PRD")
-plot2("Dane/multipliers/", tsp_instances[3:], multipliers, "Multipliers for dimension size over 100", "Multiplier value", "PRD")
-plot2("Dane/chance/", tsp_instances[:3], mutation_chance, "Mutation for dimension size chance sub 100", "Mutation chance value", "PRD")
-plot2("Dane/chance/", tsp_instances[3:], mutation_chance, "Mutation for dimension size chance over 100", "Mutation chance value", "PRD")
+# plot2("Dane/multipliers/", tsp_instances[:3], multipliers, "Multipliers for dimension size sub 100", "Multiplier value", "PRD")
+# plot2("Dane/multipliers/", tsp_instances[3:], multipliers, "Multipliers for dimension size over 100", "Multiplier value", "PRD")
+# plot2("Dane/chance/", tsp_instances[:3], mutation_chance, "Mutation for dimension size chance sub 100", "Mutation chance value", "PRD")
+# plot2("Dane/chance/", tsp_instances[3:], mutation_chance, "Mutation for dimension size chance over 100", "Mutation chance value", "PRD")
 
