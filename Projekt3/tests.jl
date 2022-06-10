@@ -111,8 +111,27 @@ function multi()
     end
 end
 
+function oblivion_cum()
+    for i in 1:25
+        println(i)
+        random_instance(false, "EUC_2D", i*10, 2137, 100, "cum$(i*10).tsp")
+    end
+end
+
+function time_measure()
+    file = open("Dane/time/results", "w")
+    for i in 1:25
+        println(i)
+        tsp = readTSP("TSP/cum$(i*10).tsp")
+        time = @elapsed genetic(tsp, 2, 3, 1)
+        write(file, "$(i*10):$time\n")
+    end
+    close(file)
+end
 # cross()
 # mut()
 # pop()
-chance()
+# chance()
 # multi()
+# oblivion_cum()
+time_measure()
