@@ -13,7 +13,7 @@ for napis1 in s1:
     values = []
     for napis2 in s2:
 
-        file = open("data/2/" + napis1 + "_" + napis2, "r")
+        file = open("../data/2/" + napis1 + "_" + napis2, "r")
         lista = []
         for line in file:
             lista.append(line)
@@ -38,7 +38,7 @@ for napis1 in s1:
 plt.xticks(pos,s2)
 plt.xlim([-1,3])
 plt.legend()
-
+plt.show()
 
 # z = np.polyfit(arguments,values,15)
 # p = np.poly1d(z)
@@ -49,4 +49,4 @@ plt.legend()
 # arr = [x] * len(values)
 # plt.plot(arguments,arr)
 #plt.ylim(-0.05,2)
-plt.savefig("plots/2/bars_atsp.png")
+# plt.savefig("plots/2/bars_atsp.png")
