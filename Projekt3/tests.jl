@@ -82,7 +82,7 @@ function chance()
         tsp = readTSP("TSP/"*tsp_name*".tsp")
         for i in mutation_chance
             print("\n|->$(tsp.name):  chance $i")
-            file = open("Dane/chance/"*tsp_name*"_"*"i", "w")
+            file = open("Dane/chance/"*tsp_name*"_"*"$i", "w")
             solution = genetic(tsp, 2, 3, 1, i)
             opt::Tuple{Bool, Float64} = get_optimal(tsp_name)
             prd = PRD(tsp, solution, opt[2])
@@ -100,7 +100,7 @@ function multi()
         tsp = readTSP("TSP/"*tsp_name*".tsp")
         for i in multipliers
             print("\n|->$(tsp.name):  chance $i")
-            file = open("Dane/multipliers/"*tsp_name*"_"*"i", "w")
+            file = open("Dane/multipliers/"*tsp_name*"_"*"$i", "w")
             solution = genetic(tsp, 2, 3, 1, 0.005, i)
             opt::Tuple{Bool, Float64} = get_optimal(tsp_name)
             prd = PRD(tsp, solution, opt[2])
@@ -111,8 +111,8 @@ function multi()
     end
 end
 
-cross()
+# cross()
 # mut()
 # pop()
-# chance()
+chance()
 # multi()
